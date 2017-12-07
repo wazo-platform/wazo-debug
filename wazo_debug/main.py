@@ -34,18 +34,23 @@ def parse_cli_args():
 
 
 def gather_facts(gathering_directory):
+    logger.info('Gathering facts...')
     gather_log_files(gathering_directory)
 
 
 def gather_log_files(gathering_directory):
-    command = ['rsync', '-a'] + \
-              glob.glob('/var/log/wazo-*') + \
-              glob.glob('/var/log/xivo-*') + \
-              [gathering_directory]
+    logger.info('Gathering log files...')
+    command = (
+        ['rsync', '-a'] +
+        glob.glob('/var/log/wazo-*') +
+        glob.glob('/var/log/xivo-*') +
+        [gathering_directory]
+    )
     call(command)
 
 
 def bundle_facts(facts_directory, output_file):
+    logger.info('Creating tarball...')
     call(['tar', 'caf', output_file, '-C', facts_directory, '.'])
 
 
