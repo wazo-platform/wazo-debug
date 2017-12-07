@@ -40,11 +40,15 @@ def gather_facts(gathering_directory):
 
 def gather_log_files(gathering_directory):
     logger.info('Gathering log files...')
+
+    gathering_log_directory = os.path.join(gathering_directory, 'logs')
+    os.mkdir(gathering_log_directory)
+
     command = (
         ['rsync', '-a'] +
         glob.glob('/var/log/wazo-*') +
         glob.glob('/var/log/xivo-*') +
-        [gathering_directory]
+        [gathering_log_directory]
     )
     call(command)
 
