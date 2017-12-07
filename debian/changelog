@@ -1,0 +1,5 @@
+wazo-debug (1.0.0) wazo-dev; urgency=medium
+
+  * Initial release.
+
+ -- Wazo Maintainers <dev+pkg@wazo.community>  Mon, 05 Jun 2017 11:13:54 -0400
