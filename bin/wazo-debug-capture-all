@@ -1,0 +1,24 @@
+#!/bin/bash
+# Copyright 2018 The Wazo Authors  (see the AUTHORS file)
+# SPDX-License-Identifier: GPL-3.0+
+
+capture_tarball="$1"
+if [ -z "${capture_tarball}" ] ; then
+    echo "Usage: $0 <capture_tarball>"
+    exit 1
+fi
+
+asterisk -rx 'sip set debug on'
+asterisk -rx 'rtp set debug on'
+tail -f /var/log/asterisk/full > /tmp/asterisk-full.log &
+tail_pid="$!"
+tcpdump -w /tmp/network.pcap &
+tcpdump_pid="$!"
+
+read -p "Press a key to end capture..." null
+
+kill "${tcpdump_pid}"
+kill "${tail_pid}"
+asterisk -rx 'rtp set debug off'
+asterisk -rx 'sip set debug off'
+tar czf "${capture_tarball}" -C /tmp asterisk-full.log network.pcap
