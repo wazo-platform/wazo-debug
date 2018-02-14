@@ -1,0 +1,19 @@
+#!/bin/bash
+# Copyright 2018 The Wazo Authors  (see the AUTHORS file)
+# SPDX-License-Identifier: GPL-3.0+
+
+domain="$1"
+logs_tarball="$2"
+if [ -z "${domain}" -o -z "${logs_tarball}" ] ; then
+    echo "Usage: $0 <domain.example.com> <output_tarball.tgz>"
+    exit 1
+fi
+
+ls -l /etc/{xivo,wazo}-*/conf.d > /tmp/etc.log
+cp /etc/custom/custom-certificate.yml /tmp/cert-config.yml || touch /tmp/cert-config.yml
+openssl s_client -connect "${domain}:9497" </dev/null >& /tmp/openssl-connect.log
+openssl s_client -connect "${domain}:9497" </dev/null 2> /tmp/cert-served.crt | openssl x509 -text -noout >& /tmp/cert-served.crt
+openssl x509 -text -noout -in /usr/share/xivo-certs/server.crt >& /tmp/cert-verify.crt
+curl "https://${domain}:9497/" >& /tmp/curl-auth.log
+
+tar czf "${logs_tarball}" -C /tmp etc.log cert-config.yml openssl-connect.log cert-served.crt cert-verify.crt curl-auth.log
