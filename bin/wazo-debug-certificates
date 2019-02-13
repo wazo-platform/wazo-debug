@@ -1,6 +1,6 @@
 #!/bin/bash
 # Copyright 2018 The Wazo Authors  (see the AUTHORS file)
-# SPDX-License-Identifier: GPL-3.0+
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 domain="$1"
 logs_tarball="$2"
