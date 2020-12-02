@@ -14,8 +14,34 @@ class CaptureCommand:
 
     def take_action(self):
         print('Starting capture...')
+
         self._clear_directory()
         call(['mkdir', '-p', self.collection_directory])
+
+        self._capture_logs()
+        self._capture_sip_rtp_packets()
+
+        print('Capture started. Hit CTRL-C to stop the capture...')
+
+        while True:
+            time.sleep(1)
+
+    def clean_up(self):
+        print()
+
+        for process in self.log_processes:
+            process.kill()
+            process.wait()
+
+        print('Capture stopped.')
+
+        tarball_filename = '/tmp/wazo-debug-capture.tar.gz'
+        self._make_capture_tarball(tarball_filename)
+        print(f'Captured files have been stored in {tarball_filename}')
+
+        self._clear_directory()
+
+    def _capture_logs(self):
         self.log_processes.append(Popen(f'tail -f /var/log/asterisk/full > {self.collection_directory}/asterisk-full', shell=True))
         wazo_logs = (
             'wazo-auth',
@@ -43,20 +69,16 @@ class CaptureCommand:
         )
         for wazo_log in wazo_logs:
             self.log_processes.append(Popen(f'tail -f /var/log/{wazo_log}.log > {self.collection_directory}/{wazo_log}.log', shell=True))
-        self.log_processes.append(Popen(['sngrep', '-O', f'{self.collection_directory}/sngrep', '-N', '-q', '-r']))
-        print('Capture started. Hit CTRL-C to stop the capture...')
-        while True:
-            time.sleep(1)
 
-    def clean_up(self):
-        print()
-        for process in self.log_processes:
-            process.kill()
-            process.wait()
-        print('Capture stopped.')
-        call(['tar', '-C', self.collection_directory, '-czf', '/tmp/wazo-debug-capture.tar.gz', '.'])
-        print('Captured files have been stored in /tmp/wazo-debug-capture.tar.gz')
-        self._clear_directory()
+    def _capture_sip_rtp_packets(self):
+        # -O: Write captured data to pcap file
+        # -N: Don't display sngrep interface, just capture
+        # -q: Don't print captured dialogs in no interface mode
+        # -r: Capture RTP packets payload
+        self.log_processes.append(Popen(['sngrep', '-O', f'{self.collection_directory}/sngrep.pcap', '-N', '-q', '-r']))
+
+    def _make_capture_tarball(self, tarball_filename):
+        call(['tar', '-C', self.collection_directory, '-czf', tarball_filename, '.'])
 
     def _clear_directory(self):
         call(['rm', '-rf', self.collection_directory])
