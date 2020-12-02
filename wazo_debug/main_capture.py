@@ -43,6 +43,7 @@ class CaptureCommand:
         )
         for wazo_log in wazo_logs:
             self.log_processes.append(Popen(f'tail -f /var/log/{wazo_log}.log > {self.collection_directory}/{wazo_log}.log', shell=True))
+        self.log_processes.append(Popen(['sngrep', '-O', f'{self.collection_directory}/sngrep', '-N', '-q', '-r']))
         print('Capture started. Hit CTRL-C to stop the capture...')
         while True:
             time.sleep(1)
