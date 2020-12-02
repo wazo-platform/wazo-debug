@@ -7,14 +7,16 @@ from subprocess import call, Popen
 
 
 class CaptureCommand:
+    collection_directory = '/tmp/wazo-debug-capture'  # sanitize if replaced with user input
+
     def __init__(self):
         self.log_processes = []
 
     def take_action(self):
         print('Starting capture...')
         self._clear_directory()
-        call(['mkdir', '-p', '/tmp/wazo-debug-capture'])
-        self.log_processes.append(Popen('tail -f /var/log/asterisk/full > /tmp/wazo-debug-capture/asterisk-full', shell=True))
+        call(['mkdir', '-p', self.collection_directory])
+        self.log_processes.append(Popen(f'tail -f /var/log/asterisk/full > {self.collection_directory}/asterisk-full', shell=True))
         wazo_logs = (
             'wazo-auth',
             'wazo-agentd',
@@ -40,7 +42,7 @@ class CaptureCommand:
             'wazo-websocketd',
         )
         for wazo_log in wazo_logs:
-            self.log_processes.append(Popen(f'tail -f /var/log/{wazo_log}.log > /tmp/wazo-debug-capture/{wazo_log}.log', shell=True))
+            self.log_processes.append(Popen(f'tail -f /var/log/{wazo_log}.log > {self.collection_directory}/{wazo_log}.log', shell=True))
         print('Capture started. Hit CTRL-C to stop the capture...')
         while True:
             time.sleep(1)
@@ -51,12 +53,12 @@ class CaptureCommand:
             process.kill()
             process.wait()
         print('Capture stopped.')
-        call(['tar', '-C', '/tmp/wazo-debug-capture', '-czf', '/tmp/wazo-debug-capture.tar.gz', '.'])
+        call(['tar', '-C', self.collection_directory, '-czf', '/tmp/wazo-debug-capture.tar.gz', '.'])
         print('Captured files have been stored in /tmp/wazo-debug-capture.tar.gz')
         self._clear_directory()
 
     def _clear_directory(self):
-        call(['rm', '-rf', '/tmp/wazo-debug-capture'])
+        call(['rm', '-rf', self.collection_directory])
 
 
 def main():
