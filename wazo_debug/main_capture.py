@@ -1,6 +1,8 @@
 # Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import time
+
 from subprocess import call, Popen
 
 
@@ -40,6 +42,8 @@ class CaptureCommand:
         for wazo_log in wazo_logs:
             self.log_processes.append(Popen(f'tail -f /var/log/{wazo_log}.log > /tmp/wazo-debug-capture/{wazo_log}.log', shell=True))
         print('Capture started. Hit CTRL-C to stop the capture...')
+        while True:
+            time.sleep(1)
 
     def clean_up(self):
         for process in self.log_processes:
