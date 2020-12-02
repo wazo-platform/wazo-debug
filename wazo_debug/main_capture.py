@@ -12,7 +12,7 @@ class CaptureCommand:
 
     def take_action(self):
         print('Starting capture...')
-        call(['rm', '-rf', '/tmp/wazo-debug-capture'])
+        self._clear_directory()
         call(['mkdir', '-p', '/tmp/wazo-debug-capture'])
         self.log_processes.append(Popen('tail -f /var/log/asterisk/full > /tmp/wazo-debug-capture/asterisk-full', shell=True))
         wazo_logs = (
@@ -52,7 +52,11 @@ class CaptureCommand:
             process.wait()
         print('Capture stopped.')
         call(['tar', '-C', '/tmp/wazo-debug-capture', '-czf', '/tmp/wazo-debug-capture.tar.gz', '.'])
-        print('Captured files have bee stored in /tmp/wazo-debug-capture.tar.gz')
+        print('Captured files have been stored in /tmp/wazo-debug-capture.tar.gz')
+        self._clear_directory()
+
+    def _clear_directory(self):
+        call(['rm', '-rf', '/tmp/wazo-debug-capture'])
 
 
 def main():
