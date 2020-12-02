@@ -9,6 +9,7 @@ class CaptureCommand:
         self.log_processes = []
 
     def take_action(self):
+        print('Starting capture...')
         call(['mkdir', '-p', '/tmp/wazo-debug-capture'])
         self.log_processes.append(Popen('tail -f /var/log/asterisk/full > /tmp/wazo-debug-capture/asterisk-full', shell=True))
         wazo_logs = (
@@ -37,11 +38,13 @@ class CaptureCommand:
         )
         for wazo_log in wazo_logs:
             self.log_processes.append(Popen(f'tail -f /var/log/{wazo_log}.log > /tmp/wazo-debug-capture/{wazo_log}.log', shell=True))
+        print('Capture started. Hit CTRL-C to stop the capture...')
 
     def clean_up(self):
         for process in self.log_processes:
             process.kill()
             process.wait()
+        print('Capture stopped.')
 
 
 def main():
