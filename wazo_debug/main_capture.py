@@ -46,10 +46,13 @@ class CaptureCommand:
             time.sleep(1)
 
     def clean_up(self):
+        print()
         for process in self.log_processes:
             process.kill()
             process.wait()
         print('Capture stopped.')
+        call(['tar', '-C', '/tmp/wazo-debug-capture', '-czf', '/tmp/wazo-debug-capture.tar.gz', '.'])
+        print('Captured files have bee stored in /tmp/wazo-debug-capture.tar.gz')
 
 
 def main():
