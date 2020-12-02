@@ -10,6 +10,7 @@ class CaptureCommand:
 
     def take_action(self):
         print('Starting capture...')
+        call(['rm', '-rf', '/tmp/wazo-debug-capture'])
         call(['mkdir', '-p', '/tmp/wazo-debug-capture'])
         self.log_processes.append(Popen('tail -f /var/log/asterisk/full > /tmp/wazo-debug-capture/asterisk-full', shell=True))
         wazo_logs = (
