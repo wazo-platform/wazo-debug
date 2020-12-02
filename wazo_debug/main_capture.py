@@ -11,7 +11,32 @@ class CaptureCommand:
     def take_action(self):
         call(['mkdir', '-p', '/tmp/wazo-debug-capture'])
         self.log_processes.append(Popen('tail -f /var/log/asterisk/full > /tmp/wazo-debug-capture/asterisk-full', shell=True))
-        self.log_processes.append(Popen('tail -f /var/log/wazo-auth.log > /tmp/wazo-debug-capture/wazo-auth.log', shell=True))
+        wazo_logs = (
+            'wazo-auth',
+            'wazo-agentd',
+            'wazo-agid',
+            'wazo-amid',
+            'wazo-auth',
+            'wazo-calld',
+            'wazo-call-logd',
+            'wazo-chatd',
+            'wazo-confd',
+            'wazo-confgend',
+            'wazo-deployd',
+            'wazo-dird',
+            'wazo-dxtora',
+            'wazo-phoned',
+            'wazo-plugind',
+            'wazo-provd',
+            'wazo-purge-db',
+            'wazo-setupd',
+            'wazo-stat',
+            'wazo-upgrade',
+            'wazo-webhookd',
+            'wazo-websocketd',
+        )
+        for wazo_log in wazo_logs:
+            self.log_processes.append(Popen(f'tail -f /var/log/{wazo_log}.log > /tmp/wazo-debug-capture/{wazo_log}.log', shell=True))
 
     def clean_up(self):
         for process in self.log_processes:
