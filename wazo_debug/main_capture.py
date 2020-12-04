@@ -13,11 +13,12 @@ class CaptureCommand:
         self.log_processes = []
 
     def take_action(self):
-        print('Starting capture...')
-
         self._clear_directory()
         call(['mkdir', '-p', self.collection_directory])
 
+        self._enable_agi_debug_mode()
+
+        print('Starting capture...')
         self._capture_logs()
         self._capture_sip_rtp_packets()
 
@@ -32,6 +33,8 @@ class CaptureCommand:
             process.wait()
 
         print('Capture stopped.')
+
+        self._disable_agi_debug_mode()
 
         tarball_filename = '/tmp/wazo-debug-capture.tar.gz'
         self._make_capture_tarball(tarball_filename)
@@ -74,6 +77,12 @@ class CaptureCommand:
         # -q: Don't print captured dialogs in no interface mode
         # -r: Capture RTP packets payload
         self.log_processes.append(Popen(['sngrep', '-O', f'{self.collection_directory}/sngrep.pcap', '-N', '-q', '-r']))
+
+    def _enable_agi_debug_mode(self):
+        call(['asterisk', '-rx', 'agi set debug on'])
+
+    def _disable_agi_debug_mode(self):
+        call(['asterisk', '-rx', 'agi set debug off'])
 
     def _make_capture_tarball(self, tarball_filename):
         call(['tar', '-C', self.collection_directory, '-czf', tarball_filename, '.'])
