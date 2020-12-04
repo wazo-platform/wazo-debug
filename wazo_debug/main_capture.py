@@ -27,8 +27,6 @@ class CaptureCommand:
             time.sleep(1)
 
     def clean_up(self):
-        print()
-
         for process in self.log_processes:
             process.kill()
             process.wait()
@@ -89,4 +87,5 @@ def main():
     try:
         command.take_action()
     except KeyboardInterrupt:
+        print()
         command.clean_up()
