@@ -57,7 +57,3 @@ def gather_log_files(gathering_directory):
 def bundle_facts(facts_directory, output_file):
     logger.info('Creating tarball...')
     call(['tar', 'caf', output_file, '-C', facts_directory, '.'])
-
-
-if __name__ == '__main__':
-    main()
