@@ -16,35 +16,21 @@ logger = logging.getLogger(__name__)
 class CollectCommand(Command):
 
     def get_parser(self, program_name):
-        return cli_parser()
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-o', '--output-file', action='store', help='The path to the output file', required=True)
+        return parser
 
     def take_action(self, parsed_args):
-        take_action(parsed_args)
+        with tempfile.TemporaryDirectory(prefix='wazo-debug-') as temp_directory:
+            logger.info('Created temporary directory: "%s"', temp_directory)
 
+            gathering_directory = os.path.join(temp_directory, 'wazo-debug')
+            os.mkdir(gathering_directory)
 
-def main():
-    logging.basicConfig(level=logging.INFO)
-    args = cli_parser().parse_args()
-    take_action(args)
+            gather_facts(gathering_directory)
+            bundle_facts(temp_directory, parsed_args.output_file)
 
-
-def take_action(args):
-    with tempfile.TemporaryDirectory(prefix='wazo-debug-') as temp_directory:
-        logger.info('Created temporary directory: "%s"', temp_directory)
-
-        gathering_directory = os.path.join(temp_directory, 'wazo-debug')
-        os.mkdir(gathering_directory)
-
-        gather_facts(gathering_directory)
-        bundle_facts(temp_directory, args.output_file)
-
-        logger.info('Removing temporary directory: "%s"', temp_directory)
-
-
-def cli_parser():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-o', '--output-file', action='store', help='The path to the output file', required=True)
-    return parser
+            logger.info('Removing temporary directory: "%s"', temp_directory)
 
 
 def gather_facts(gathering_directory):
