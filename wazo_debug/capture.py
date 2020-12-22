@@ -11,7 +11,8 @@ from subprocess import call, Popen
 class CaptureCommand(Command):
     "Capture live events happening on a Wazo server"
 
-    collection_directory = '/tmp/wazo-debug-capture'  # sanitize if replaced with user input
+    # sanitize if replaced with user input
+    collection_directory = '/tmp/wazo-debug-capture'
 
     def take_action(self, parsed_args):
         self.log_processes = []
@@ -92,7 +93,14 @@ class CaptureCommand(Command):
         # -N: Don't display sngrep interface, just capture
         # -q: Don't print captured dialogs in no interface mode
         # -r: Capture RTP packets payload
-        command = ['sngrep', '-O', f'{self.collection_directory}/sngrep.pcap', '-N', '-q', '-r']
+        command = [
+            'sngrep',
+            '-O',
+            f'{self.collection_directory}/sngrep.pcap',
+            '-N',
+            '-q',
+            '-r',
+        ]
         self.log_processes.append(Popen(command))
 
     def _enable_agi_debug_mode(self):

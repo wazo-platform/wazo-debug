@@ -8,7 +8,6 @@ from cliff.commandmanager import CommandManager
 
 
 class WazoDebugApp(App):
-
     def __init__(self):
         super().__init__(
             description='Wazo Debug',

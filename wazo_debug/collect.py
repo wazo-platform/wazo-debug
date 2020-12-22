@@ -18,7 +18,13 @@ class CollectCommand(Command):
 
     def get_parser(self, program_name):
         parser = argparse.ArgumentParser()
-        parser.add_argument('-o', '--output-file', action='store', help='The path to the output file', required=True)
+        parser.add_argument(
+            '-o',
+            '--output-file',
+            action='store',
+            help='The path to the output file',
+            required=True,
+        )
         return parser
 
     def take_action(self, parsed_args):
