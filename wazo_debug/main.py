@@ -1,62 +1,26 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import argparse
-import glob
-import logging
-import os
-import tempfile
+import sys
 
-from subprocess import call
-
-logger = logging.getLogger(__name__)
+from cliff.app import App
+from cliff.commandmanager import CommandManager
 
 
-def main():
-    logging.basicConfig(level=logging.INFO)
-    args = parse_cli_args()
-    with tempfile.TemporaryDirectory(prefix='wazo-debug-') as temp_directory:
-        logger.info('Created temporary directory: "%s"', temp_directory)
-
-        gathering_directory = os.path.join(temp_directory, 'wazo-debug')
-        os.mkdir(gathering_directory)
-
-        gather_facts(gathering_directory)
-        bundle_facts(temp_directory, args.output_file)
-
-        logger.info('Removing temporary directory: "%s"', temp_directory)
+class WazoDebugApp(App):
+    def __init__(self):
+        super().__init__(
+            description='Wazo Debug',
+            command_manager=CommandManager('wazo_debug.commands'),
+            version='1.0.0',
+            deferred_help=True,
+        )
 
 
-def parse_cli_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-o', '--output-file', action='store', help='The path to the output file', required=True)
-    return parser.parse_args()
-
-
-def gather_facts(gathering_directory):
-    logger.info('Gathering facts...')
-    gather_log_files(gathering_directory)
-
-
-def gather_log_files(gathering_directory):
-    logger.info('Gathering log files...')
-
-    gathering_log_directory = os.path.join(gathering_directory, 'logs')
-    os.mkdir(gathering_log_directory)
-
-    command = (
-        ['rsync', '-a'] +
-        glob.glob('/var/log/wazo-*') +
-        glob.glob('/var/log/xivo-*') +
-        [gathering_log_directory]
-    )
-    call(command)
-
-
-def bundle_facts(facts_directory, output_file):
-    logger.info('Creating tarball...')
-    call(['tar', 'caf', output_file, '-C', facts_directory, '.'])
+def main(argv=sys.argv[1:]):
+    myapp = WazoDebugApp()
+    return myapp.run(argv)
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main(sys.argv[1:]))
