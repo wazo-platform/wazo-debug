@@ -9,6 +9,7 @@ from subprocess import call, Popen
 
 
 class CaptureCommand(Command):
+    "Capture live events happening on a Wazo server"
 
     collection_directory = '/tmp/wazo-debug-capture'  # sanitize if replaced with user input
 
