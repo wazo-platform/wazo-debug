@@ -54,7 +54,8 @@ class CaptureCommand(Command):
         self._clear_directory()
 
     def _capture_logs(self):
-        self.log_processes.append(Popen(f'tail -f /var/log/asterisk/full > {self.collection_directory}/asterisk-full', shell=True))
+        command = f'tail -f /var/log/asterisk/full > {self.collection_directory}/asterisk-full'
+        self.log_processes.append(Popen(command, shell=True))
         wazo_logs = (
             'wazo-auth',
             'wazo-agentd',
@@ -83,14 +84,16 @@ class CaptureCommand(Command):
             'xivo-upgrade',
         )
         for wazo_log in wazo_logs:
-            self.log_processes.append(Popen(f'tail -f /var/log/{wazo_log}.log > {self.collection_directory}/{wazo_log}.log', shell=True))
+            command = f'tail -f /var/log/{wazo_log}.log > {self.collection_directory}/{wazo_log}.log'
+            self.log_processes.append(Popen(command, shell=True))
 
     def _capture_sip_rtp_packets(self):
         # -O: Write captured data to pcap file
         # -N: Don't display sngrep interface, just capture
         # -q: Don't print captured dialogs in no interface mode
         # -r: Capture RTP packets payload
-        self.log_processes.append(Popen(['sngrep', '-O', f'{self.collection_directory}/sngrep.pcap', '-N', '-q', '-r']))
+        command = ['sngrep', '-O', f'{self.collection_directory}/sngrep.pcap', '-N', '-q', '-r']
+        self.log_processes.append(Popen(command))
 
     def _enable_agi_debug_mode(self):
         call(['asterisk', '-rx', 'agi set debug on'])
