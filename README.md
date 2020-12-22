@@ -27,3 +27,26 @@ The compression format is determined by the extension of the given file name, e.
 
 - `file.tar.gz` will be compressed with `gzip`
 - `file.tar.xz` will be compressed with `xz`
+
+## wazo-debug-capture
+
+`wazo-debug-capture` captures events and logs happening on a server while the
+process is running.
+
+Captured events include:
+
+- Wazo Platform logs
+- Asterisk logs
+  - including AGI logs
+- SIP and RTP packets
+  - sngrep only captures entire SIP dialogs, not partial dialogs, i.e. it can't
+    log packets for calls that have started before sngrep started capturing
+
+### Usage
+
+```
+wazo-debug-capture
+```
+
+The capture will start automatically. To stop the capture, hit CTRL-C. The
+capture file will be printed on the console.
