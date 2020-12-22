@@ -16,7 +16,6 @@ setup(
     entry_points={
         'console_scripts': [
             'wazo-debug-collect= wazo_debug.main_collect:main',
-            'wazo-debug-capture = wazo_debug.main_capture:main',
             'wazo-debug = wazo_debug.main:main',
         ],
         'wazo_debug.commands': [

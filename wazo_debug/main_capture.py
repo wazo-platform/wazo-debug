@@ -110,8 +110,3 @@ class CaptureCommand(Command):
 
     def _clear_directory(self):
         call(['rm', '-rf', self.collection_directory])
-
-
-def main():
-    command = CaptureCommand()
-    command.take_action()
