@@ -14,7 +14,18 @@ class CaptureCommand(Command):
 
     def take_action(self, parsed_args):
         self.log_processes = []
+        self._start_capture()
 
+        print('Capture started. Hit CTRL-C to stop the capture...')
+
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print()
+            self._stop_capture()
+
+    def _start_capture(self):
         self._clear_directory()
         call(['mkdir', '-p', self.collection_directory])
 
@@ -25,16 +36,7 @@ class CaptureCommand(Command):
         self._capture_logs()
         self._capture_sip_rtp_packets()
 
-        print('Capture started. Hit CTRL-C to stop the capture...')
-
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print()
-            self.clean_up()
-
-    def clean_up(self):
+    def _stop_capture(self):
         for process in self.log_processes:
             process.kill()
             process.wait()
