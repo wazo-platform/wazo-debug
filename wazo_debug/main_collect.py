@@ -7,14 +7,28 @@ import logging
 import os
 import tempfile
 
+from cliff.command import Command
 from subprocess import call
 
 logger = logging.getLogger(__name__)
 
 
+class CollectCommand(Command):
+
+    def get_parser(self, program_name):
+        return cli_parser()
+
+    def take_action(self, parsed_args):
+        take_action(parsed_args)
+
+
 def main():
     logging.basicConfig(level=logging.INFO)
-    args = parse_cli_args()
+    args = cli_parser().parse_args()
+    take_action(args)
+
+
+def take_action(args):
     with tempfile.TemporaryDirectory(prefix='wazo-debug-') as temp_directory:
         logger.info('Created temporary directory: "%s"', temp_directory)
 
@@ -27,10 +41,10 @@ def main():
         logger.info('Removing temporary directory: "%s"', temp_directory)
 
 
-def parse_cli_args():
+def cli_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-o', '--output-file', action='store', help='The path to the output file', required=True)
-    return parser.parse_args()
+    return parser
 
 
 def gather_facts(gathering_directory):

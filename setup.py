@@ -20,6 +20,7 @@ setup(
         ],
         'wazo_debug.commands': [
             'capture = wazo_debug.main_capture:CaptureCommand',
+            'collect = wazo_debug.main_collect:CollectCommand',
         ],
     },
 )
