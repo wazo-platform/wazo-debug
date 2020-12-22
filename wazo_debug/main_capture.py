@@ -4,16 +4,17 @@
 import datetime
 import time
 
+from cliff.command import Command
 from subprocess import call, Popen
 
 
-class CaptureCommand:
+class CaptureCommand(Command):
+
     collection_directory = '/tmp/wazo-debug-capture'  # sanitize if replaced with user input
 
-    def __init__(self):
+    def take_action(self, parsed_args):
         self.log_processes = []
 
-    def take_action(self):
         self._clear_directory()
         call(['mkdir', '-p', self.collection_directory])
 
@@ -26,8 +27,12 @@ class CaptureCommand:
 
         print('Capture started. Hit CTRL-C to stop the capture...')
 
-        while True:
-            time.sleep(1)
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print()
+            self.clean_up()
 
     def clean_up(self):
         for process in self.log_processes:
@@ -109,8 +114,4 @@ class CaptureCommand:
 
 def main():
     command = CaptureCommand()
-    try:
-        command.take_action()
-    except KeyboardInterrupt:
-        print()
-        command.clean_up()
+    command.take_action()
