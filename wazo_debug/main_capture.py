@@ -1,6 +1,7 @@
 # Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import datetime
 import time
 
 from subprocess import call, Popen
@@ -19,6 +20,7 @@ class CaptureCommand:
         self._enable_agi_debug_mode()
 
         print('Starting capture...')
+        self._log_start_date()
         self._capture_logs()
         self._capture_sip_rtp_packets()
 
@@ -32,6 +34,7 @@ class CaptureCommand:
             process.kill()
             process.wait()
 
+        self._log_stop_date()
         print('Capture stopped.')
 
         self._disable_agi_debug_mode()
@@ -86,6 +89,16 @@ class CaptureCommand:
 
     def _disable_agi_debug_mode(self):
         call(['asterisk', '-rx', 'agi set debug off'])
+
+    def _log_start_date(self):
+        now = datetime.datetime.now().isoformat()
+        with open(f'{self.collection_directory}/metadata.txt', 'a') as metadata_file:
+            metadata_file.write(f'Start: {now}\n')
+
+    def _log_stop_date(self):
+        now = datetime.datetime.now().isoformat()
+        with open(f'{self.collection_directory}/metadata.txt', 'a') as metadata_file:
+            metadata_file.write(f'Stop: {now}\n')
 
     def _make_capture_tarball(self, tarball_filename):
         call(['tar', '-C', self.collection_directory, '-czf', tarball_filename, '.'])
