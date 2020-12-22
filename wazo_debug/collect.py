@@ -46,10 +46,10 @@ def gather_log_files(gathering_directory):
     os.mkdir(gathering_log_directory)
 
     command = (
-        ['rsync', '-a'] +
-        glob.glob('/var/log/wazo-*') +
-        glob.glob('/var/log/xivo-*') +
-        [gathering_log_directory]
+        ['rsync', '-a']
+        + glob.glob('/var/log/wazo-*')
+        + glob.glob('/var/log/xivo-*')
+        + [gathering_log_directory]
     )
     call(command)
 
