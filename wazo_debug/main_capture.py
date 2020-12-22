@@ -67,6 +67,9 @@ class CaptureCommand:
             'wazo-upgrade',
             'wazo-webhookd',
             'wazo-websocketd',
+            'xivo-sync',
+            'xivo-sysconfd',
+            'xivo-upgrade',
         )
         for wazo_log in wazo_logs:
             self.log_processes.append(Popen(f'tail -f /var/log/{wazo_log}.log > {self.collection_directory}/{wazo_log}.log', shell=True))
