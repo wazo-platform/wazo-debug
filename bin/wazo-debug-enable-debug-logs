@@ -1,0 +1,69 @@
+#!/bin/bash
+# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+select_mode() {
+    if(whiptail --title "Enable/Disable debug logs" --yesno "Would you like to enable/disable the debug mode for a Wazo service?" --yes-button "Enable" --no-button "Disable"  10 70 3>&1 1>&2 2>&3) then
+        whiptail --title "Enable/Disable debug logs" --msgbox \
+    "Warning: enabling or disabling debug logs will restart the Wazo service. This may cause a service interruption." 10 70 3>&1 1>&2 2>&3
+        select_service 0
+    else
+        whiptail --title "Enable/Disable debug logs" --msgbox \
+    "Warning: enabling or disabling debug logs will restart the Wazo service. This may cause a service interruption." 10 70 3>&1 1>&2 2>&3
+        select_service 1
+    fi
+}
+
+select_service() {
+    SERVICE=$(whiptail --separate-output --title "Select the Wazo services" --checklist \
+    "Select services to enable debug logs" 20 100 8 \
+    "wazo-auth" "Enable debug logs for service wazo-auth" OFF \
+    "wazo-plugind" "Enable debug logs for service wazo-plugind" OFF \
+    "wazo-webhookd" "Enable debug logs for service wazo-webhookd" OFF \
+    "wazo-provd" "Enable debug logs for service wazo-provd" OFF \
+    "wazo-chatd" "Enable debug logs for service wazo-chatd" OFF \
+    "wazo-confd" "Enable debug logs for service wazo-confd" OFF \
+    "wazo-dird" "Enable debug logs for service wazo-dird" OFF 3>&1 1>&2 2>&3)
+
+    exitstatus=$?
+    if [ $exitstatus = 0 ]; then
+        for services in $SERVICE; do active_debug $services $1; done
+    else
+        echo "Cancelled."
+    fi
+}
+
+active_debug() {
+    {
+        if [ $2 = 0 ]; then
+            echo -e "XXX\n00\nWriting... \nXXX"
+            sleep 0.2
+            echo "debug: true" > /etc/$1/conf.d/debug.yml
+            echo -e "XXX\n50\nWriting... OK \nXXX"
+            sleep 0.5
+            echo -e "XXX\n50\nRestarting service... \nXXX"
+            systemctl restart $1
+        else
+            echo -e "XXX\n00\nWriting... \nXXX"
+            sleep 0.2
+            echo "debug: false" > /etc/$1/conf.d/debug.yml
+            echo -e "XXX\n50\nWriting... OK \nXXX"
+            sleep 0.5
+            echo -e "XXX\n50\nRestarting service... \nXXX"
+            systemctl restart $1
+            echo -e "XXX\n100\nRestarting service... OK \nXXX"
+            sleep 0.5
+        fi
+    } | whiptail --gauge "Please wait..." 6 60 0
+    bye $2 $1
+}
+
+bye() {
+    if [ $1 = 0 ]; then
+        whiptail --title "$2" --msgbox "Debug logs are enabled for service $2" 10 60
+    else
+        whiptail --title "$2" --msgbox "Debug logs are disabled service $2" 10 60
+    fi
+}
+
+select_mode

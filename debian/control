@@ -12,7 +12,8 @@ Depends:
  ${python3:Depends},
  ${misc:Depends},
  python3-cliff,
- sngrep
+ sngrep,
+ whiptail
 Description: Wazo debug scripts
  Wazo is a system based on a powerful IPBX, to bring an easy to
  install solution for telephony and related services.
