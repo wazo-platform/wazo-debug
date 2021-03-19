@@ -1,4 +1,4 @@
-# Copyright 2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import datetime
@@ -77,11 +77,11 @@ class CaptureCommand(Command):
             'wazo-purge-db',
             'wazo-setupd',
             'wazo-stat',
+            'wazo-sysconfd',
             'wazo-upgrade',
             'wazo-webhookd',
             'wazo-websocketd',
             'xivo-sync',
-            'xivo-sysconfd',
             'xivo-upgrade',
         )
         for wazo_log in wazo_logs:
