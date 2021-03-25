@@ -44,6 +44,7 @@ def gather_facts(gathering_directory):
     logger.info('Gathering facts...')
     gather_log_files(gathering_directory)
     gather_config_files(gathering_directory)
+    gather_engine_info(gathering_directory)
 
 
 def gather_log_files(gathering_directory):
@@ -69,6 +70,13 @@ def gather_config_files(gathering_directory):
     os.mkdir(gathering_config_directory)
 
     command = ['rsync', '-a'] + glob.glob('/etc/wazo-*') + [gathering_config_directory]
+    call(command)
+
+
+def gather_engine_info(gathering_directory):
+    logger.info('Gathering engine information...')
+
+    command = ['rsync', '-a', '/usr/share/wazo/WAZO-VERSION', gathering_directory]
     call(command)
 
 
