@@ -8,6 +8,7 @@ for use in problem analysis.
 Gathered info include:
 
 - log files
+- Asterisk log files
 
 ### Usage
 
