@@ -9,6 +9,7 @@ Gathered info include:
 
 - log files
 - Asterisk log files
+- configuration files
 
 ### Usage
 

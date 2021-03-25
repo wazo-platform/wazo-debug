@@ -43,6 +43,7 @@ class CollectCommand(Command):
 def gather_facts(gathering_directory):
     logger.info('Gathering facts...')
     gather_log_files(gathering_directory)
+    gather_config_files(gathering_directory)
 
 
 def gather_log_files(gathering_directory):
@@ -58,6 +59,16 @@ def gather_log_files(gathering_directory):
         + glob.glob('/var/log/asterisk/full*')
         + [gathering_log_directory]
     )
+    call(command)
+
+
+def gather_config_files(gathering_directory):
+    logger.info('Gathering configuration files...')
+
+    gathering_config_directory = os.path.join(gathering_directory, 'config')
+    os.mkdir(gathering_config_directory)
+
+    command = ['rsync', '-a'] + glob.glob('/etc/wazo-*') + [gathering_config_directory]
     call(command)
 
 
