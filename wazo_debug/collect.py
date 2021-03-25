@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class CollectCommand(Command):
-    "Collect informations about a Wazo server"
+    """Collect information about a Wazo server"""
 
     def get_parser(self, program_name):
         parser = argparse.ArgumentParser()
