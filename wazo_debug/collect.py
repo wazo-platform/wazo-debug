@@ -69,7 +69,12 @@ def gather_config_files(gathering_directory):
     gathering_config_directory = os.path.join(gathering_directory, 'config')
     os.mkdir(gathering_config_directory)
 
-    command = ['rsync', '-a'] + glob.glob('/etc/wazo-*') + [gathering_config_directory]
+    command = (
+        ['rsync', '-a']
+        + glob.glob('/etc/wazo-*')
+        + glob.glob('/etc/xivo*')
+        + [gathering_config_directory]
+    )
     call(command)
 
 
