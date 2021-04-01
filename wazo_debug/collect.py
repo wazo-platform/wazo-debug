@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class CollectCommand(Command):
-    "Collect informations about a Wazo server"
+    """Collect information about a Wazo server"""
 
     def get_parser(self, program_name):
         parser = argparse.ArgumentParser()
@@ -43,6 +43,8 @@ class CollectCommand(Command):
 def gather_facts(gathering_directory):
     logger.info('Gathering facts...')
     gather_log_files(gathering_directory)
+    gather_config_files(gathering_directory)
+    gather_engine_info(gathering_directory)
 
 
 def gather_log_files(gathering_directory):
@@ -55,8 +57,31 @@ def gather_log_files(gathering_directory):
         ['rsync', '-a']
         + glob.glob('/var/log/wazo-*')
         + glob.glob('/var/log/xivo-*')
+        + glob.glob('/var/log/asterisk/full*')
         + [gathering_log_directory]
     )
+    call(command)
+
+
+def gather_config_files(gathering_directory):
+    logger.info('Gathering configuration files...')
+
+    gathering_config_directory = os.path.join(gathering_directory, 'config')
+    os.mkdir(gathering_config_directory)
+
+    command = (
+        ['rsync', '-a']
+        + glob.glob('/etc/wazo-*')
+        + glob.glob('/etc/xivo*')
+        + [gathering_config_directory]
+    )
+    call(command)
+
+
+def gather_engine_info(gathering_directory):
+    logger.info('Gathering engine information...')
+
+    command = ['rsync', '-a', '/usr/share/wazo/WAZO-VERSION', gathering_directory]
     call(command)
 
 
