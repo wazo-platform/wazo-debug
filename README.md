@@ -53,3 +53,4 @@ wazo-debug capture
 
 The capture will start automatically. To stop the capture, hit CTRL-C. The
 capture file will be printed on the console.
+
