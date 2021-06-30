@@ -73,6 +73,7 @@ def gather_config_files(gathering_directory):
         ['rsync', '-a']
         + glob.glob('/etc/wazo-*')
         + glob.glob('/etc/xivo*')
+        + glob.glob('/etc/asterisk')
         + [gathering_config_directory]
     )
     call(command)
