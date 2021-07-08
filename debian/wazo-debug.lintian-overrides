@@ -1,0 +1,1 @@
+wazo-debug: depends-on-essential-package-without-using-version depends: coreutils
