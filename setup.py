@@ -8,7 +8,7 @@ from setuptools import find_packages
 
 setup(
     name='wazo-debug',
-    version='1.0',
+    version='1.1',
     author='Wazo Authors',
     author_email='dev@wazo.community',
     url='http://wazo.community',
@@ -18,6 +18,7 @@ setup(
             'wazo-debug = wazo_debug.main:main',
         ],
         'wazo_debug.commands': [
+            'access = wazo_debug.access:AccessCommand',
             'capture = wazo_debug.capture:CaptureCommand',
             'collect = wazo_debug.collect:CollectCommand',
         ],

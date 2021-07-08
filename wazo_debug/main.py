@@ -12,7 +12,7 @@ class WazoDebugApp(App):
         super().__init__(
             description='Wazo Debug',
             command_manager=CommandManager('wazo_debug.commands'),
-            version='1.0.0',
+            version='1.1.0',
             deferred_help=True,
         )
 

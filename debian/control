@@ -11,8 +11,11 @@ Architecture: all
 Depends:
  ${python3:Depends},
  ${misc:Depends},
+ coreutils,
+ openssh-client,
  python3-cliff,
  sngrep,
+ sshpass,
  whiptail
 Description: Wazo debug scripts
  Wazo is a system based on a powerful IPBX, to bring an easy to

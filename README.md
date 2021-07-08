@@ -53,3 +53,13 @@ wazo-debug capture
 
 The capture will start automatically. To stop the capture, hit CTRL-C. The
 capture file will be printed on the console.
+
+## wazo-debug access
+
+`wazo-debug access` open an access to this Platform even behind a NAT or a Firewall. This is done opening a SSH tunnel on a remote server, the local port being exposed on a random port on the remote server.
+
+### Usage
+
+```
+wazo-debug access
+```
