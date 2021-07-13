@@ -5,10 +5,14 @@ import argparse
 import logging
 import random
 import time
-from subprocess import call
+import subprocess
+
 from cliff.command import Command
 
+logging.basicConfig()
 logger = logging.getLogger(__name__)
+
+ssh_max_retries = 3
 
 
 class AccessCommand(Command):
@@ -32,81 +36,103 @@ class AccessCommand(Command):
             '-s',
             '--remote-server',
             action='store',
-            help='The remote server where the tunnel will be opened. Default to Wazo\' Support access server.',
-            default='support-access.wazo.io',
+            help='The remote server where the tunnel will be opened.',
         )
         parser.add_argument(
             '-r',
             '--remote-server-port',
             action='store',
             help='The remote server port.',
-            default=22000,
         )
         parser.add_argument(
             '-u',
             '--remote-user',
             action='store',
             help='The unix user on the remote server.',
-            default='customer',
         )
         parser.add_argument(
-            '-p',
-            '--remote-password',
+            '-i',
+            '--identity',
             action='store',
-            help="The remote user's password.",
-            default='dA24zoB5anPj2JBcAn86bTVCCWSjhN4JDsKPyD7JaFuopvxHupWKMLk7kPQHmsPSMAjonKiBStyRQ99fEEoSixzuCUBywhrcg7dDQvFot9cSWo7PimTM9BbS9vq49ATe',
+            help="The remote user's SSH private key file.",
         )
         parser.add_argument(
             '-t',
             '--timeout',
             action='store',
-            help='The tunnel will timeout after this much seconds. Default to 8 hours.',
+            help='The tunnel will timeout after this much seconds. Defaults to 8 hours.',
             default=28800,
         )
         return parser
 
     def take_action(self, parsed_args):
 
-        # We need a retry mechanism just in case there's a port collision on the remote server, in which case we make a new attempt with a different random port
-        attempt = 1
-        max_retries = 3
-        result = -1
-        while result != 0:
-            if attempt > max_retries:
-                logger.critical(f'Max retries ({max_retries}) exceeded, exiting.')
-                exit(1)
-
+        # We need a retry mechanism just in case there's a port collision on
+        # the remote server, in which case we make a new attempt with a different
+        # random port
+        for attempt in range(ssh_max_retries):
             result = self.open_access(parsed_args)
+            if result == 0:
+                break
+        else:
+            logger.critical('Max retries (%s) exceeded, exiting.', ssh_max_retries)
+            exit(1)
 
     def open_access(self, parsed_args):
         remote_port = random.randint(22022, 22222)
 
-        ssh_command = f'ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o ExitOnForwardFailure=yes -o ServerAliveInterval=15 -o ServerAliveCountMax=10 -o ControlMaster=no {parsed_args.remote_user}@{parsed_args.remote_server} -p {parsed_args.remote_server_port} -R0.0.0.0:{remote_port}:localhost:{parsed_args.local_port} sleep infinity'
+        ssh_command = [
+            'ssh',
+            '-o',
+            'StrictHostKeyChecking=no',
+            '-o',
+            'PreferredAuthentications=publickey',
+            '-o',
+            'ExitOnForwardFailure=yes',
+            '-o',
+            'ServerAliveInterval=15',
+            '-o',
+            'ServerAliveCountMax=10',
+            '-o',
+            'ControlMaster=no',
+            '-l',
+            parsed_args.remote_user,
+            '-p',
+            str(parsed_args.remote_server_port),
+            '-i',
+            parsed_args.identity,
+            '-R',
+            f'0.0.0.0:{remote_port}:localhost:{parsed_args.local_port}',
+            parsed_args.remote_server,
+            'sleep infinity',
+        ]
 
-        full_command = f"timeout {parsed_args.timeout} sshpass -e {ssh_command}"
+        full_command = ['timeout', str(parsed_args.timeout)] + ssh_command
 
         human_readable_timeout = time.strftime(
             "%H:%M:%S", time.gmtime(parsed_args.timeout)
         )
 
+        logger.debug(
+            f'''\
+Opening the access using this command:
+    {' '.join(full_command)}'''
+        )
+
         logger.info(
-            f'''Access will open now. To connect as the 'root' user on the current server, one can use the following command:
+            f'''\
+Access will open now. To connect as the 'root' user on the current server, one can use the following command:
 
     ssh root@{parsed_args.remote_server} -p {remote_port}
 
-Keep the terminal open and it''ll last for {human_readable_timeout}. Close the terminal or hit Ctrl-C to cut it.'''
+Keep the terminal open and it'll last for {human_readable_timeout}. Close the terminal or hit Ctrl-C to cut it.'''
         )
-
-        logger.debug(
-            f'''Opening the access using this command:
-    {full_command}'''
-        )
-
-        result = call(
-            full_command.split(' '), env={'SSHPASS': parsed_args.remote_password}
-        )
-
-        if result != 0:
+        try:
+            subprocess.run(full_command)
+        except subprocess.CalledProcessError as e:
             logger.error("Couldn't open the access !")
+            logger.debug('stdout: %s', e.stdout)
+            logger.error('stderr: %s', e.stderr)
+            return e.returncode
 
-        return result
+        return 0
