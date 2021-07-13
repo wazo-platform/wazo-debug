@@ -58,6 +58,8 @@ def gather_log_files(gathering_directory):
         + glob.glob('/var/log/wazo-*')
         + glob.glob('/var/log/xivo-*')
         + glob.glob('/var/log/asterisk/full*')
+        + glob.glob('/var/log/rabbitmq')
+        + glob.glob('/var/log/nginx')
         + [gathering_log_directory]
     )
     call(command)
