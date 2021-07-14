@@ -36,24 +36,28 @@ class AccessCommand(Command):
             '-s',
             '--remote-server',
             action='store',
+            required=True,
             help='The remote server where the tunnel will be opened.',
         )
         parser.add_argument(
             '-r',
             '--remote-server-port',
             action='store',
+            required=True,
             help='The remote server port.',
         )
         parser.add_argument(
             '-u',
             '--remote-user',
             action='store',
+            required=True,
             help='The unix user on the remote server.',
         )
         parser.add_argument(
             '-i',
             '--identity',
             action='store',
+            required=True,
             help="The remote user's SSH private key file.",
         )
         parser.add_argument(
