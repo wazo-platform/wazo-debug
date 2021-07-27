@@ -11,6 +11,8 @@ Architecture: all
 Depends:
  ${python3:Depends},
  ${misc:Depends},
+ coreutils,
+ openssh-client,
  python3-cliff,
  sngrep,
  whiptail
