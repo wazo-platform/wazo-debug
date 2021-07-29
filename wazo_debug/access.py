@@ -138,5 +138,7 @@ Keep the terminal open and it'll last for {human_readable_timeout}. Close the te
             logger.debug('stdout: %s', e.stdout)
             logger.error('stderr: %s', e.stderr)
             return e.returncode
+        except KeyboardInterrupt:
+            logger.debug('KeyboardInterrupt (CTRL-C)')
 
         return 0
