@@ -3,11 +3,12 @@
 
 import datetime
 import logging
+import signal
 import time
 
 from cliff.command import Command
 from requests import RequestException
-from subprocess import call, Popen
+from subprocess import call, Popen, PIPE
 
 from wazo_auth_client import Client as AuthClient
 from wazo_calld_client import Client as CalldClient
@@ -58,12 +59,14 @@ class CaptureCommand(Command):
         print('Starting capture...')
         self._log_start_date()
         self._capture_logs()
-        self._capture_sip_rtp_packets()
+        self._capture_network_packets()
 
     def _stop_capture(self):
         for process in self.log_processes:
-            process.kill()
+            process.send_signal(signal.SIGINT)
             process.wait()
+            if process.returncode != 0 and process.stderr:
+                print(process.stderr.read().decode('utf-8'))
 
         self._log_stop_date()
         print('Capture stopped.')
@@ -179,20 +182,19 @@ class CaptureCommand(Command):
         ]
         client.config.patch(config_patch)
 
-    def _capture_sip_rtp_packets(self):
-        # -O: Write captured data to pcap file
-        # -N: Don't display sngrep interface, just capture
-        # -q: Don't print captured dialogs in no interface mode
-        # -r: Capture RTP packets payload
+    def _capture_network_packets(self):
+        # -w: Write captured data to pcap file
+        # -q: Quiet mode
+        # -i: Network interface to listen. any = eth0 (for STUN) + lo (for SIP over WS, decrypted)
         command = [
-            'sngrep',
-            '-O',
-            f'{self.collection_directory}/sngrep.pcap',
-            '-N',
+            'tcpdump',
+            '-w',
+            f'{self.collection_directory}/network.pcap',
             '-q',
-            '-r',
+            '-i',
+            'any',
         ]
-        self.log_processes.append(Popen(command))
+        self.log_processes.append(Popen(command, stderr=PIPE))
 
     def _enable_agi_debug_mode(self):
         call(['asterisk', '-rx', 'agi set debug on'])
