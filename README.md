@@ -45,7 +45,11 @@ Captured events include:
   - wazo-webhookd in debug mode
 - Asterisk logs
   - including AGI logs
-- all network packets (excluding local interface)
+- SIP and RTP packets
+  - sngrep only captures entire SIP dialogs, not partial dialogs, i.e. it can't
+    log packets for calls that have started before sngrep started capturing
+- STUN packets
+- DNS packets
 
 ### Usage
 

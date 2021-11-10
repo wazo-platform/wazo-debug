@@ -60,6 +60,7 @@ class CaptureCommand(Command):
         self._log_start_date()
         self._capture_logs()
         self._capture_network_packets()
+        self._capture_sip_rtp_packets()
 
     def _stop_capture(self):
         for process in self.log_processes:
@@ -183,6 +184,13 @@ class CaptureCommand(Command):
         client.config.patch(config_patch)
 
     def _capture_network_packets(self):
+        # udp[12:4]: UDP payload from byte 12, 4 bytes long
+        # 0x2112a442: STUN/TURN packet identifier
+        stun_filter = 'udp[12:4] = 0x2112a442'
+        dns_filter = 'udp port 53'
+
+        filter_ = ' || '.join([stun_filter, dns_filter])
+
         # -w: Write captured data to pcap file
         # -q: Quiet mode
         # -i: Network interface to listen. any = eth0 (for STUN) + lo (for SIP over WS, decrypted)
@@ -193,8 +201,24 @@ class CaptureCommand(Command):
             '-q',
             '-i',
             'any',
+            filter_,
         ]
         self.log_processes.append(Popen(command, stderr=PIPE))
+
+    def _capture_sip_rtp_packets(self):
+        # -O: Write captured data to pcap file
+        # -N: Don't display sngrep interface, just capture
+        # -q: Don't print captured dialogs in no interface mode
+        # -r: Capture RTP packets payload
+        command = [
+            'sngrep',
+            '-O',
+            f'{self.collection_directory}/sngrep.pcap',
+            '-N',
+            '-q',
+            '-r',
+        ]
+        self.log_processes.append(Popen(command))
 
     def _enable_agi_debug_mode(self):
         call(['asterisk', '-rx', 'agi set debug on'])
