@@ -1,1 +1,6 @@
+https://github.com/wazo-platform/wazo-auth-client/archive/master.zip
+https://github.com/wazo-platform/wazo-call-logd-client/archive/master.zip
+https://github.com/wazo-platform/wazo-calld-client/archive/master.zip
+https://github.com/wazo-platform/wazo-webhookd-client/archive/master.zip
 cliff==2.13.0
+requests==2.21.0
