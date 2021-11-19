@@ -39,6 +39,10 @@ process is running.
 Captured events include:
 
 - Wazo Platform logs
+  - wazo-auth in debug mode
+  - wazo-calld in debug mode
+  - wazo-call-logd in debug mode
+  - wazo-webhookd in debug mode
 - Asterisk logs
   - including AGI logs
 - SIP and RTP packets

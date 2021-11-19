@@ -2,10 +2,23 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import datetime
+import logging
 import time
 
 from cliff.command import Command
+from requests import RequestException
 from subprocess import call, Popen
+
+from wazo_auth_client import Client as AuthClient
+from wazo_calld_client import Client as CalldClient
+from wazo_call_logd_client import Client as CallLogdClient
+from wazo_webhookd_client import Client as WebhookdClient
+
+logger = logging.getLogger(__name__)
+
+
+class TokenCreationError(Exception):
+    pass
 
 
 class CaptureCommand(Command):
@@ -32,6 +45,15 @@ class CaptureCommand(Command):
         call(['mkdir', '-p', self.collection_directory])
 
         self._enable_agi_debug_mode()
+        try:
+            self.token = self._create_token()
+        except TokenCreationError as e:
+            logger.error('Error creating token. Could not enable debug logs: %s', e)
+        else:
+            self._enable_wazo_auth_debug_logs(self.token)
+            self._enable_wazo_calld_debug_logs(self.token)
+            self._enable_wazo_call_logd_debug_logs(self.token)
+            self._enable_wazo_webhookd_debug_logs(self.token)
 
         print('Starting capture...')
         self._log_start_date()
@@ -45,6 +67,16 @@ class CaptureCommand(Command):
 
         self._log_stop_date()
         print('Capture stopped.')
+
+        try:
+            self.token = self._create_token()
+        except TokenCreationError as e:
+            logger.error('Error creating token. Could not disable debug logs: %s', e)
+        else:
+            self._disable_wazo_webhookd_debug_logs(self.token)
+            self._disable_wazo_call_logd_debug_logs(self.token)
+            self._disable_wazo_calld_debug_logs(self.token)
+            self._disable_wazo_auth_debug_logs(self.token)
 
         self._disable_agi_debug_mode()
 
@@ -87,6 +119,65 @@ class CaptureCommand(Command):
         for wazo_log in wazo_logs:
             command = f'tail -f /var/log/{wazo_log}.log > {self.collection_directory}/{wazo_log}.log'
             self.log_processes.append(Popen(command, shell=True))
+
+    def _create_token(self):
+        client = AuthClient(**self.app.config['auth'])
+        try:
+            return client.token.new(backend='wazo_user')['token']
+        except RequestException as e:
+            raise TokenCreationError(e)
+
+    def _enable_wazo_auth_debug_logs(self, token):
+        client = AuthClient(**self.app.config['auth'], token=token)
+        self._enable_service_debug_logs(client)
+
+    def _disable_wazo_auth_debug_logs(self, token):
+        client = AuthClient(**self.app.config['auth'], token=token)
+        self._disable_service_debug_logs(client)
+
+    def _enable_wazo_calld_debug_logs(self, token):
+        client = CalldClient(**self.app.config['calld'], token=token)
+        self._enable_service_debug_logs(client)
+
+    def _disable_wazo_calld_debug_logs(self, token):
+        client = CalldClient(**self.app.config['calld'], token=token)
+        self._disable_service_debug_logs(client)
+
+    def _enable_wazo_call_logd_debug_logs(self, token):
+        client = CallLogdClient(**self.app.config['call-logd'], token=token)
+        self._enable_service_debug_logs(client)
+
+    def _disable_wazo_call_logd_debug_logs(self, token):
+        client = CallLogdClient(**self.app.config['call-logd'], token=token)
+        self._disable_service_debug_logs(client)
+
+    def _enable_wazo_webhookd_debug_logs(self, token):
+        client = WebhookdClient(**self.app.config['webhookd'], token=token)
+        self._enable_service_debug_logs(client)
+
+    def _disable_wazo_webhookd_debug_logs(self, token):
+        client = WebhookdClient(**self.app.config['webhookd'], token=token)
+        self._disable_service_debug_logs(client)
+
+    def _enable_service_debug_logs(self, client):
+        config_patch = [
+            {
+                'op': 'replace',
+                'path': '/debug',
+                'value': True,
+            }
+        ]
+        client.config.patch(config_patch)
+
+    def _disable_service_debug_logs(self, client):
+        config_patch = [
+            {
+                'op': 'replace',
+                'path': '/debug',
+                'value': False,
+            }
+        ]
+        client.config.patch(config_patch)
 
     def _capture_sip_rtp_packets(self):
         # -O: Write captured data to pcap file
