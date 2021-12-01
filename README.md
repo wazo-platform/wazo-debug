@@ -48,6 +48,8 @@ Captured events include:
 - SIP and RTP packets
   - sngrep only captures entire SIP dialogs, not partial dialogs, i.e. it can't
     log packets for calls that have started before sngrep started capturing
+- STUN packets
+- DNS packets
 
 ### Usage
 

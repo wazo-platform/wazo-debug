@@ -3,11 +3,12 @@
 
 import datetime
 import logging
+import signal
 import time
 
 from cliff.command import Command
 from requests import RequestException
-from subprocess import call, Popen
+from subprocess import call, Popen, PIPE
 
 from wazo_auth_client import Client as AuthClient
 from wazo_calld_client import Client as CalldClient
@@ -58,12 +59,15 @@ class CaptureCommand(Command):
         print('Starting capture...')
         self._log_start_date()
         self._capture_logs()
+        self._capture_network_packets()
         self._capture_sip_rtp_packets()
 
     def _stop_capture(self):
         for process in self.log_processes:
-            process.kill()
+            process.send_signal(signal.SIGINT)
             process.wait()
+            if process.returncode != 0 and process.stderr:
+                print(process.stderr.read().decode('utf-8'))
 
         self._log_stop_date()
         print('Capture stopped.')
@@ -178,6 +182,28 @@ class CaptureCommand(Command):
             }
         ]
         client.config.patch(config_patch)
+
+    def _capture_network_packets(self):
+        # udp[12:4]: UDP payload from byte 12, 4 bytes long
+        # 0x2112a442: STUN/TURN packet identifier
+        stun_filter = 'udp[12:4] = 0x2112a442'
+        dns_filter = 'udp port 53'
+
+        filter_ = ' || '.join([stun_filter, dns_filter])
+
+        # -w: Write captured data to pcap file
+        # -q: Quiet mode
+        # -i: Network interface to listen. any = eth0 (for STUN) + lo (for SIP over WS, decrypted)
+        command = [
+            'tcpdump',
+            '-w',
+            f'{self.collection_directory}/network.pcap',
+            '-q',
+            '-i',
+            'any',
+            filter_,
+        ]
+        self.log_processes.append(Popen(command, stderr=PIPE))
 
     def _capture_sip_rtp_packets(self):
         # -O: Write captured data to pcap file
