@@ -110,8 +110,11 @@ class AccessCommand(Command):
             parsed_args.remote_server,
             'sleep infinity',
         ]
-
-        full_command = ['timeout', str(parsed_args.timeout)] + ssh_command
+        full_command = [
+            'timeout',
+            '--foreground',
+            str(parsed_args.timeout),
+        ] + ssh_command
 
         human_readable_timeout = time.strftime(
             "%H:%M:%S", time.gmtime(parsed_args.timeout)
