@@ -64,6 +64,7 @@ class AccessCommand(Command):
             '-t',
             '--timeout',
             action='store',
+            type=int,
             help='The tunnel will timeout after this much seconds. Defaults to 8 hours.',
             default=28800,
         )
@@ -107,11 +108,14 @@ class AccessCommand(Command):
             parsed_args.identity,
             '-R',
             f'0.0.0.0:{remote_port}:localhost:{parsed_args.local_port}',
+            '-N',
             parsed_args.remote_server,
-            'sleep infinity',
         ]
-
-        full_command = ['timeout', str(parsed_args.timeout)] + ssh_command
+        full_command = [
+            'timeout',
+            '--foreground',
+            str(parsed_args.timeout),
+        ] + ssh_command
 
         human_readable_timeout = time.strftime(
             "%H:%M:%S", time.gmtime(parsed_args.timeout)
