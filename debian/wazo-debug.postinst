@@ -1,11 +1,15 @@
-#! /bin/sh
+#! /bin/bash
 
 set -e
 
 case "$1" in
     configure)
-        # wazo-auth may not be running
-        wazo-auth-keys service update || true
+        previous_version="$2"
+        # Update wazo-auth-keys when manually installed
+        if [[ -z "${previous_version}" ]]; then
+            # wazo-auth may not be running on fresh install
+            wazo-auth-keys service update || true
+        fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
