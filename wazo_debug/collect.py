@@ -1,4 +1,4 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -60,6 +60,7 @@ def gather_log_files(gathering_directory):
         + glob.glob('/var/log/asterisk/full*')
         + glob.glob('/var/log/rabbitmq')
         + glob.glob('/var/log/nginx')
+        + glob.glob('/var/log/syslog*')
         + [gathering_log_directory]
     )
     call(command)
