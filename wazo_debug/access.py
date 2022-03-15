@@ -1,4 +1,4 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -71,6 +71,7 @@ class AccessCommand(Command):
         return parser
 
     def take_action(self, parsed_args):
+        self.check_access(parsed_args)
 
         # We need a retry mechanism just in case there's a port collision on
         # the remote server, in which case we make a new attempt with a different
@@ -82,6 +83,46 @@ class AccessCommand(Command):
         else:
             logger.critical('Max retries (%s) exceeded, exiting.', ssh_max_retries)
             exit(1)
+
+    def check_access(self, parsed_args):
+        ssh_command = [
+            'ssh',
+            '-o',
+            'StrictHostKeyChecking=no',
+            '-o',
+            'PreferredAuthentications=publickey',
+            '-o',
+            'ExitOnForwardFailure=yes',
+            '-o',
+            'ServerAliveInterval=15',
+            '-o',
+            'ServerAliveCountMax=10',
+            '-o',
+            'ControlMaster=no',
+            '-o',
+            'ConnectTimeout=2',
+            '-l',
+            parsed_args.remote_user,
+            '-p',
+            str(parsed_args.remote_server_port),
+            '-i',
+            parsed_args.identity,
+            parsed_args.remote_server,
+            'exit 0',
+        ]
+        logger.debug(
+            f'''\
+Opening the access using this command:
+    {' '.join(ssh_command)}'''
+        )
+        logger.info('Checking connectivity...')
+        try:
+            subprocess.run(ssh_command, check=True)
+        except subprocess.CalledProcessError:
+            logger.error("Couldn't open the access !")
+            exit(1)
+        except KeyboardInterrupt:
+            logger.debug('KeyboardInterrupt (CTRL-C)')
 
     def open_access(self, parsed_args):
         remote_port = random.randint(22022, 22222)
