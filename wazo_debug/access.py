@@ -177,7 +177,7 @@ Access will open now. To connect as the 'root' user on the current server, one c
 Keep the terminal open and it'll last for {human_readable_timeout}. Close the terminal or hit Ctrl-C to cut it.'''
         )
         try:
-            subprocess.run(full_command)
+            subprocess.run(full_command, check=True)
         except subprocess.CalledProcessError as e:
             logger.error("Couldn't open the access !")
             logger.debug('stdout: %s', e.stdout)
