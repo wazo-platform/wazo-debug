@@ -128,7 +128,7 @@ Opening the access using this command:
             subprocess.run(ssh_command, check=True)
         except subprocess.CalledProcessError:
             logger.error("Couldn't open the access !")
-            exit(1)
+            exit(2)
         except KeyboardInterrupt:
             logger.debug('KeyboardInterrupt (CTRL-C)')
 

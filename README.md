@@ -69,3 +69,8 @@ capture file will be printed on the console.
 ```
 wazo-debug access
 ```
+
+### Exit status
+
+* Exit status `1`: Tunnel creation failed on all retries
+* Exit status `2`: Tunnel connectivity check failed: the server cannot reach the SSH reverse-proxy.
