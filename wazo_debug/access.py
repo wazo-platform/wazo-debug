@@ -68,6 +68,14 @@ class AccessCommand(Command):
             help='The tunnel will timeout after this much seconds. Defaults to 8 hours.',
             default=28800,
         )
+        parser.add_argument(
+            '-c',
+            '--connect-timeout',
+            action='store',
+            type=int,
+            help='The tunnel will stop attempting to establish after this much seconds. Defaults to 2 seconds.',
+            default=2,
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -100,7 +108,7 @@ class AccessCommand(Command):
             '-o',
             'ControlMaster=no',
             '-o',
-            'ConnectTimeout=2',
+            f'ConnectTimeout={parsed_args.connect_timeout}',
             '-l',
             parsed_args.remote_user,
             '-p',
@@ -141,6 +149,8 @@ Opening the access using this command:
             'ServerAliveCountMax=10',
             '-o',
             'ControlMaster=no',
+            '-o',
+            f'ConnectTimeout={parsed_args.connect_timeout}',
             '-l',
             parsed_args.remote_user,
             '-p',
