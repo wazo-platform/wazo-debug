@@ -1,4 +1,4 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -68,9 +68,18 @@ class AccessCommand(Command):
             help='The tunnel will timeout after this much seconds. Defaults to 8 hours.',
             default=28800,
         )
+        parser.add_argument(
+            '-c',
+            '--connect-timeout',
+            action='store',
+            type=int,
+            help='The tunnel will stop attempting to establish after this much seconds. Defaults to 2 seconds.',
+            default=2,
+        )
         return parser
 
     def take_action(self, parsed_args):
+        self.check_access(parsed_args)
 
         # We need a retry mechanism just in case there's a port collision on
         # the remote server, in which case we make a new attempt with a different
@@ -82,6 +91,46 @@ class AccessCommand(Command):
         else:
             logger.critical('Max retries (%s) exceeded, exiting.', ssh_max_retries)
             exit(1)
+
+    def check_access(self, parsed_args):
+        ssh_command = [
+            'ssh',
+            '-o',
+            'StrictHostKeyChecking=no',
+            '-o',
+            'PreferredAuthentications=publickey',
+            '-o',
+            'ExitOnForwardFailure=yes',
+            '-o',
+            'ServerAliveInterval=15',
+            '-o',
+            'ServerAliveCountMax=10',
+            '-o',
+            'ControlMaster=no',
+            '-o',
+            f'ConnectTimeout={parsed_args.connect_timeout}',
+            '-l',
+            parsed_args.remote_user,
+            '-p',
+            str(parsed_args.remote_server_port),
+            '-i',
+            parsed_args.identity,
+            parsed_args.remote_server,
+            'exit 0',
+        ]
+        logger.debug(
+            f'''\
+Opening the access using this command:
+    {' '.join(ssh_command)}'''
+        )
+        logger.info('Checking connectivity...')
+        try:
+            subprocess.run(ssh_command, check=True)
+        except subprocess.CalledProcessError:
+            logger.error("Couldn't open the access !")
+            exit(2)
+        except KeyboardInterrupt:
+            logger.debug('KeyboardInterrupt (CTRL-C)')
 
     def open_access(self, parsed_args):
         remote_port = random.randint(22022, 22222)
@@ -100,6 +149,8 @@ class AccessCommand(Command):
             'ServerAliveCountMax=10',
             '-o',
             'ControlMaster=no',
+            '-o',
+            f'ConnectTimeout={parsed_args.connect_timeout}',
             '-l',
             parsed_args.remote_user,
             '-p',
@@ -136,7 +187,7 @@ Access will open now. To connect as the 'root' user on the current server, one c
 Keep the terminal open and it'll last for {human_readable_timeout}. Close the terminal or hit Ctrl-C to cut it.'''
         )
         try:
-            subprocess.run(full_command)
+            subprocess.run(full_command, check=True)
         except subprocess.CalledProcessError as e:
             logger.error("Couldn't open the access !")
             logger.debug('stdout: %s', e.stdout)
