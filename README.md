@@ -74,3 +74,13 @@ wazo-debug access
 
 * Exit status `1`: Tunnel creation failed on all retries
 * Exit status `2`: Tunnel connectivity check failed: the server cannot reach the SSH reverse-proxy.
+
+## wazo-debug public-ip
+
+`wazo-debug public-ip` detects the NAT type and public IP address used by the Wazo server to access the Internet.
+
+### Usage
+
+```
+wazo-debug public-ip --stun-host stun.example.org
+```

@@ -15,6 +15,7 @@ Depends:
  openssh-client,
  python3-cliff,
  python3-requests (>= 2.4.3),
+ python3-pystun3,
  sngrep,
  tcpdump,
  wazo-auth-client-python3,
