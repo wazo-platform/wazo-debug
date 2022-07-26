@@ -90,6 +90,10 @@ def gather_engine_info(gathering_directory):
     command = ['rsync', '-a', '/usr/share/wazo/WAZO-VERSION', gathering_directory]
     call(command)
 
+    command = ['timedatectl']
+    with open(f'{gathering_directory}/timedatectl.txt', 'a') as info_file:
+        call(command, stdout=info_file)
+
 
 def bundle_facts(facts_directory, output_file):
     logger.info('Creating tarball...')
