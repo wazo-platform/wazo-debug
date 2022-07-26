@@ -104,7 +104,6 @@ class CaptureCommand(Command):
             'wazo-chatd',
             'wazo-confd',
             'wazo-confgend',
-            'wazo-deployd',
             'wazo-dird',
             'wazo-dxtora',
             'wazo-phoned',
