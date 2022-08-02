@@ -55,12 +55,14 @@ def gather_log_files(gathering_directory):
 
     command = (
         ['rsync', '-a']
+        + ['--include', 'asterisk/full*']
+        + ['--exclude', 'asterisk/*']
+        + glob.glob('/var/log/asterisk')
+        + glob.glob('/var/log/nginx')
+        + glob.glob('/var/log/rabbitmq')
+        + glob.glob('/var/log/syslog*')
         + glob.glob('/var/log/wazo-*')
         + glob.glob('/var/log/xivo-*')
-        + glob.glob('/var/log/asterisk/full*')
-        + glob.glob('/var/log/rabbitmq')
-        + glob.glob('/var/log/nginx')
-        + glob.glob('/var/log/syslog*')
         + [gathering_log_directory]
     )
     call(command)
