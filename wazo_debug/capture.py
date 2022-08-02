@@ -104,7 +104,6 @@ class CaptureCommand(Command):
             'wazo-chatd',
             'wazo-confd',
             'wazo-confgend',
-            'wazo-deployd',
             'wazo-dird',
             'wazo-dxtora',
             'wazo-phoned',
@@ -227,14 +226,18 @@ class CaptureCommand(Command):
         call(['asterisk', '-rx', 'agi set debug off'])
 
     def _log_start_date(self):
-        now = datetime.datetime.now().isoformat()
+        now = datetime.datetime.now()
+        now_iso = now.isoformat()
+        local_timezone = now.astimezone().tzinfo
         with open(f'{self.collection_directory}/metadata.txt', 'a') as metadata_file:
-            metadata_file.write(f'Start: {now}\n')
+            metadata_file.write(f'Start: {now_iso} - {local_timezone}\n')
 
     def _log_stop_date(self):
-        now = datetime.datetime.now().isoformat()
+        now = datetime.datetime.now()
+        now_iso = now.isoformat()
+        local_timezone = now.astimezone().tzinfo
         with open(f'{self.collection_directory}/metadata.txt', 'a') as metadata_file:
-            metadata_file.write(f'Stop: {now}\n')
+            metadata_file.write(f'Stop: {now_iso} - {local_timezone}\n')
 
     def _make_capture_tarball(self, tarball_filename):
         call(['tar', '-C', self.collection_directory, '-czf', tarball_filename, '.'])
