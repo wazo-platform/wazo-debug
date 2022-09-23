@@ -1,12 +1,11 @@
 # This file should not be modified as it may get changed by the maintainer.
-# Add extra configuration files in the extra_config_files directory to override
-# the content from this file
+# Add extra configuration files to the extra_config_files directory to override
+# the settings in this file
 
-# Extra configuration directory where the config files overriding this file
-# should be.
+# Directory in which to place config overrides
 extra_config_files: /etc/wazo-debug/conf.d/
 
-# wazo-auth (authentication daemon) connection informations.
+# wazo-auth (authentication daemon) connection settings.
 auth:
   host: localhost
   port: 9497
@@ -14,18 +13,21 @@ auth:
   https: false
   key_file: /var/lib/wazo-auth-keys/wazo-debug-key.yml
 
+# wazo-calld connection settings.
 calld:
   host: localhost
   port: 9500
   prefix: null
   https: false
 
+# wazo-call-logd connection settings.
 call-logd:
   host: localhost
   port: 9298
   prefix: null
   https: false
 
+# wazo-webhookd connection settings.
 webhookd:
   host: localhost
   port: 9300
