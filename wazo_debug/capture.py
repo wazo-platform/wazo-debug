@@ -233,18 +233,15 @@ class CaptureCommand(Command):
             metadata_file.write(f'Wazo version: {version}')
 
     def _log_start_date(self):
-        now = datetime.datetime.now()
-        now_iso = now.isoformat()
-        local_timezone = now.astimezone().tzinfo
         with open(f'{self.collection_directory}/metadata.txt', 'a') as metadata_file:
-            metadata_file.write(f'Start: {now_iso} - {local_timezone}\n')
+            metadata_file.write(f'Start: {self._now()}\n')
 
     def _log_stop_date(self):
-        now = datetime.datetime.now()
-        now_iso = now.isoformat()
-        local_timezone = now.astimezone().tzinfo
         with open(f'{self.collection_directory}/metadata.txt', 'a') as metadata_file:
-            metadata_file.write(f'Stop: {now_iso} - {local_timezone}\n')
+            metadata_file.write(f'Stop: {self._now()}\n')
+
+    def _now(self):
+        return datetime.datetime.now().astimezone().isoformat()
 
     def _make_capture_tarball(self, tarball_filename):
         call(['tar', '-C', self.collection_directory, '-czf', tarball_filename, '.'])
