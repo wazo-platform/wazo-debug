@@ -1,4 +1,4 @@
-# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import datetime
@@ -57,6 +57,7 @@ class CaptureCommand(Command):
             self._enable_wazo_webhookd_debug_logs(self.token)
 
         print('Starting capture...')
+        self._log_version()
         self._log_start_date()
         self._capture_logs()
         self._capture_network_packets()
@@ -225,19 +226,22 @@ class CaptureCommand(Command):
     def _disable_agi_debug_mode(self):
         call(['asterisk', '-rx', 'agi set debug off'])
 
-    def _log_start_date(self):
-        now = datetime.datetime.now()
-        now_iso = now.isoformat()
-        local_timezone = now.astimezone().tzinfo
+    def _log_version(self):
+        with open('/usr/share/wazo/WAZO-VERSION', 'r') as version_file:
+            version = version_file.read()
         with open(f'{self.collection_directory}/metadata.txt', 'a') as metadata_file:
-            metadata_file.write(f'Start: {now_iso} - {local_timezone}\n')
+            metadata_file.write(f'Wazo version: {version}')
+
+    def _log_start_date(self):
+        with open(f'{self.collection_directory}/metadata.txt', 'a') as metadata_file:
+            metadata_file.write(f'Start: {self._now()}\n')
 
     def _log_stop_date(self):
-        now = datetime.datetime.now()
-        now_iso = now.isoformat()
-        local_timezone = now.astimezone().tzinfo
         with open(f'{self.collection_directory}/metadata.txt', 'a') as metadata_file:
-            metadata_file.write(f'Stop: {now_iso} - {local_timezone}\n')
+            metadata_file.write(f'Stop: {self._now()}\n')
+
+    def _now(self):
+        return datetime.datetime.now().astimezone().isoformat()
 
     def _make_capture_tarball(self, tarball_filename):
         call(['tar', '-C', self.collection_directory, '-czf', tarball_filename, '.'])
