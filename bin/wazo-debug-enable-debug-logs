@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 select_mode() {
@@ -15,21 +15,34 @@ select_mode() {
 }
 
 select_service() {
-    SERVICE=$(whiptail --separate-output --title "Select the Wazo services" --checklist \
-    "Select services to enable debug logs" 20 100 8 \
-    "wazo-auth" "Enable debug logs for service wazo-auth" OFF \
-    "wazo-plugind" "Enable debug logs for service wazo-plugind" OFF \
-    "wazo-webhookd" "Enable debug logs for service wazo-webhookd" OFF \
-    "wazo-provd" "Enable debug logs for service wazo-provd" OFF \
-    "wazo-chatd" "Enable debug logs for service wazo-chatd" OFF \
-    "wazo-confd" "Enable debug logs for service wazo-confd" OFF \
-    "wazo-dird" "Enable debug logs for service wazo-dird" OFF 3>&1 1>&2 2>&3)
-
+    services=("wazo-auth" "wazo-plugind" "wazo-webhookd" "wazo-provd" "wazo-chatd" "wazo-confd" "wazo-dird")
+    choice_cmd="whiptail --separate-output --title \"Select the Wazo services\" --checklist \"Select services to enable debug logs\" 20 100 8 "
+    for service in "${services[@]}"
+    do
+	debug_status "$service"
+	service_status=$?
+	if [ $service_status = 0 ]; then
+	    word="ON"
+	else
+	    word="OFF"
+	fi
+	choice_cmd+="\"$service\" \"Enable debug logs for service $service\" $word "
+    done
+    SERVICE=$(eval $choice_cmd 3>&1 1>&2 2>&3)
     exitstatus=$?
     if [ $exitstatus = 0 ]; then
         for services in $SERVICE; do active_debug $services $1; done
     else
         echo "Cancelled."
+    fi
+}
+
+debug_status() {
+    debug_file="/etc/$1/conf.d/debug.yml"
+    if [ -f "$debug_file" ]; then
+	grep 'debug: true' "$debug_file" > /dev/null
+    else
+	return 1
     fi
 }
 
