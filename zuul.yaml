@@ -1,4 +1,4 @@
 - project:
     templates:
-      - debian-packaging-template
-      - wazo-tox-linters
+      - wazo-tox-linters-310
+      - debian-packaging-bullseye
