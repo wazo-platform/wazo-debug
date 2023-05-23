@@ -3,4 +3,4 @@ https://github.com/wazo-platform/wazo-call-logd-client/archive/master.zip
 https://github.com/wazo-platform/wazo-calld-client/archive/master.zip
 https://github.com/wazo-platform/wazo-webhookd-client/archive/master.zip
 cliff==3.4.0
-requests==2.25.1
+requests==2.31.0
