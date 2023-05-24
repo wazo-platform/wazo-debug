@@ -1,4 +1,4 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo.chain_map import ChainMap
@@ -10,8 +10,8 @@ from xivo.config_helper import (
 
 _APP_NAME = 'wazo-debug'
 _DEFAULT_CONFIG = {
-    'config_file': '/etc/{}/config.yml'.format(_APP_NAME),
-    'extra_config_files': '/etc/{}/conf.d/'.format(_APP_NAME),
+    'config_file': f'/etc/{_APP_NAME}/config.yml',
+    'extra_config_files': f'/etc/{_APP_NAME}/conf.d/',
     'auth': {
         'host': 'localhost',
         'port': 9497,
