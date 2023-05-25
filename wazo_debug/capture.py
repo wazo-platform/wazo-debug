@@ -227,7 +227,7 @@ class CaptureCommand(Command):
         call(['asterisk', '-rx', 'agi set debug off'])
 
     def _log_version(self):
-        with open('/usr/share/wazo/WAZO-VERSION', 'r') as version_file:
+        with open('/usr/share/wazo/WAZO-VERSION') as version_file:
             version = version_file.read()
         with open(f'{self.collection_directory}/metadata.txt', 'a') as metadata_file:
             metadata_file.write(f'Wazo version: {version}')
