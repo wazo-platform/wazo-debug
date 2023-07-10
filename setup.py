@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from setuptools import setup
@@ -22,6 +22,7 @@ setup(
             'capture = wazo_debug.capture:CaptureCommand',
             'collect = wazo_debug.collect:CollectCommand',
             'public-ip = wazo_debug.public_ip:PublicIPCommand',
+            'http-request-duration = wazo_debug.http_request_duration:HTTPRequestDurationCommand',
         ],
     },
 )

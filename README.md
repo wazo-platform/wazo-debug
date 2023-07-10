@@ -84,3 +84,14 @@ wazo-debug access
 ```
 wazo-debug public-ip --stun-host stun.example.org
 ```
+
+## wazo-debug http-request-duration
+
+`wazo-debug http-request-duration` displays HTTP requests sorted by response duration. The first column is the request duration in seconds.
+
+### Usage
+
+```
+wazo-debug http-request-duration
+wazo-debug http-request-duration --access-file /var/log/nginx/wazo.example.com.access.log
+```
