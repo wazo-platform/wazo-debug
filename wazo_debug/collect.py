@@ -1,4 +1,4 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -63,6 +63,8 @@ def gather_log_files(gathering_directory):
         + glob.glob('/var/log/syslog*')
         + glob.glob('/var/log/wazo-*')
         + glob.glob('/var/log/xivo-*')
+        + glob.glob('/var/log/fail2ban*')
+        + glob.glob('/var/www/munin')
         + [gathering_log_directory]
     )
     call(command)
