@@ -81,6 +81,7 @@ def gather_config_files(gathering_directory):
         + glob.glob('/etc/wazo-*')
         + glob.glob('/etc/xivo*')
         + glob.glob('/etc/asterisk')
+        + glob.glob('/etc/nginx')
         + [gathering_config_directory]
     )
     call(command)
