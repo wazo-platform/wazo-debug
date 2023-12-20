@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 domain="$1"
@@ -15,7 +15,7 @@ mkdir /tmp/wazo-debug-certificates
 ls -l /etc/{xivo,wazo}-*/conf.d > /tmp/wazo-debug-certificates/etc.log
 cp /etc/custom/custom-certificate.yml /tmp/wazo-debug-certificates/cert-config.yml
 openssl s_client -showcerts -connect localhost:9497 </dev/null 2>/dev/null | sed -n '/^-----BEGIN CERT/,/^-----END CERT/p' >& /tmp/wazo-debug-certificates/certs-served.pem
-cp /usr/share/xivo-certs/server.crt /tmp/wazo-debug-certificates/cert-file.pem
+cp /usr/share/wazo-certs/server.crt /tmp/wazo-debug-certificates/cert-file.pem
 curl "https://${domain}:9497/" >& /tmp/wazo-debug-certificates/curl-wazo-auth.log
 
 tar czf "${logs_tarball}" -C /tmp wazo-debug-certificates
