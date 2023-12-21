@@ -6,9 +6,9 @@ import glob
 import logging
 import os
 import tempfile
+from subprocess import call
 
 from cliff.command import Command
-from subprocess import call
 
 logger = logging.getLogger(__name__)
 

@@ -5,14 +5,13 @@ import datetime
 import logging
 import signal
 import time
+from subprocess import PIPE, Popen, call
 
 from cliff.command import Command
 from requests import RequestException
-from subprocess import call, Popen, PIPE
-
 from wazo_auth_client import Client as AuthClient
-from wazo_calld_client import Client as CalldClient
 from wazo_call_logd_client import Client as CallLogdClient
+from wazo_calld_client import Client as CalldClient
 from wazo_webhookd_client import Client as WebhookdClient
 
 logger = logging.getLogger(__name__)
