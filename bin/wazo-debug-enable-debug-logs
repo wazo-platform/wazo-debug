@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 select_mode() {
@@ -40,9 +40,13 @@ select_service() {
 debug_status() {
     debug_file="/etc/$1/conf.d/debug.yml"
     if [ -f "$debug_file" ]; then
-	grep 'debug: true' "$debug_file" > /dev/null
+        if [ "$1" == "wazo-provd" ]; then
+            grep 'verbose: true' "$debug_file" > /dev/null
+        else
+            grep 'debug: true' "$debug_file" > /dev/null
+        fi
     else
-	return 1
+        return 1
     fi
 }
 
@@ -51,7 +55,11 @@ active_debug() {
         if [ $2 = 0 ]; then
             echo -e "XXX\n00\nWriting... \nXXX"
             sleep 0.2
-            echo "debug: true" > /etc/$1/conf.d/debug.yml
+            if [ "$1" == "wazo-provd" ]; then
+                echo "verbose: true" > /etc/$1/conf.d/debug.yml
+            else
+                echo "debug: true" > /etc/$1/conf.d/debug.yml
+            fi
             echo -e "XXX\n50\nWriting... OK \nXXX"
             sleep 0.5
             echo -e "XXX\n50\nRestarting service... \nXXX"
@@ -59,7 +67,11 @@ active_debug() {
         else
             echo -e "XXX\n00\nWriting... \nXXX"
             sleep 0.2
-            echo "debug: false" > /etc/$1/conf.d/debug.yml
+            if [ "$1" == "wazo-provd" ]; then
+                echo "verbose: false" > /etc/$1/conf.d/debug.yml
+            else
+                echo "debug: false" > /etc/$1/conf.d/debug.yml
+            fi
             echo -e "XXX\n50\nWriting... OK \nXXX"
             sleep 0.5
             echo -e "XXX\n50\nRestarting service... \nXXX"
@@ -70,6 +82,7 @@ active_debug() {
     } | whiptail --gauge "Please wait..." 6 60 0
     bye $2 $1
 }
+
 
 bye() {
     if [ $1 = 0 ]; then
