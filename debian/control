@@ -18,9 +18,12 @@ Depends:
  python3-pystun3,
  sngrep,
  tcpdump,
+ wazo-amid-client-python3,
  wazo-auth-client-python3,
  wazo-call-logd-client-python3,
  wazo-calld-client-python3,
+ wazo-chatd-client-python3,
+ wazo-dird-client-python3,
  wazo-webhookd-client-python3,
  whiptail
 Description: Wazo debug scripts

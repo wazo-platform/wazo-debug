@@ -1,7 +1,10 @@
 wazo-debug:
   system_user: root
   acl:
+    - 'amid.config.update'
     - 'auth.config.update'
     - 'calld.config.update'
     - 'call_logd.config.update'
+    - 'chatd.config.update'
     - 'webhookd.config.update'
+    - 'dird.config.update'
