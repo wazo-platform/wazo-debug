@@ -9,9 +9,12 @@ from subprocess import PIPE, Popen, call
 
 from cliff.command import Command
 from requests import RequestException
+from wazo_amid_client import Client as AmidClient
 from wazo_auth_client import Client as AuthClient
 from wazo_call_logd_client import Client as CallLogdClient
 from wazo_calld_client import Client as CalldClient
+from wazo_chatd_client import Client as ChatdClient
+from wazo_dird_client import Client as DirdClient
 from wazo_webhookd_client import Client as WebhookdClient
 
 logger = logging.getLogger(__name__)
@@ -54,6 +57,9 @@ class CaptureCommand(Command):
             self._enable_wazo_calld_debug_logs(self.token)
             self._enable_wazo_call_logd_debug_logs(self.token)
             self._enable_wazo_webhookd_debug_logs(self.token)
+            self._enable_wazo_amid_debug_logs(self.token)
+            self._enable_wazo_dird_debug_logs(self.token)
+            self._enable_wazo_chatd_debug_logs(self.token)
 
         print('Starting capture...')
         self._log_version()
@@ -81,6 +87,9 @@ class CaptureCommand(Command):
             self._disable_wazo_call_logd_debug_logs(self.token)
             self._disable_wazo_calld_debug_logs(self.token)
             self._disable_wazo_auth_debug_logs(self.token)
+            self._disable_wazo_amid_debug_logs(self.token)
+            self._disable_wazo_dird_debug_logs(self.token)
+            self._disable_wazo_chatd_debug_logs(self.token)
 
         self._disable_agi_debug_mode()
 
@@ -161,6 +170,30 @@ class CaptureCommand(Command):
 
     def _disable_wazo_webhookd_debug_logs(self, token):
         client = WebhookdClient(**self.app.config['webhookd'], token=token)
+        self._disable_service_debug_logs(client)
+
+    def _enable_wazo_amid_debug_logs(self, token):
+        client = AmidClient(**self.app.config['amid'], token=token)
+        self._enable_service_debug_logs(client)
+
+    def _disable_wazo_amid_debug_logs(self, token):
+        client = AmidClient(**self.app.config['amid'], token=token)
+        self._disable_service_debug_logs(client)
+
+    def _enable_wazo_chatd_debug_logs(self, token):
+        client = ChatdClient(**self.app.config['chatd'], token=token)
+        self._enable_service_debug_logs(client)
+
+    def _disable_wazo_chatd_debug_logs(self, token):
+        client = ChatdClient(**self.app.config['chatd'], token=token)
+        self._disable_service_debug_logs(client)
+
+    def _enable_wazo_dird_debug_logs(self, token):
+        client = DirdClient(**self.app.config['dird'], token=token)
+        self._enable_service_debug_logs(client)
+
+    def _disable_wazo_dird_debug_logs(self, token):
+        client = DirdClient(**self.app.config['dird'], token=token)
         self._disable_service_debug_logs(client)
 
     def _enable_service_debug_logs(self, client):

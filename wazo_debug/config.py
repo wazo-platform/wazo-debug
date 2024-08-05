@@ -37,6 +37,24 @@ _DEFAULT_CONFIG = {
         'prefix': None,
         'https': False,
     },
+    'amid': {
+        'host': 'localhost',
+        'port': '9491',
+        'prefix': None,
+        'https': False,
+    },
+    'dird': {
+        'host': 'localhost',
+        'port': '9489',
+        'prefix': None,
+        'https': False,
+    },
+    'chatd': {
+        'host': 'localhost',
+        'port': '9304',
+        'prefix': None,
+        'https': False,
+    },
 }
 
 
