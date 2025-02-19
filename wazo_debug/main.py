@@ -1,10 +1,12 @@
-# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import logging
 import sys
 
 from cliff.app import App
 from cliff.commandmanager import CommandManager
+from xivo import xivo_logging
 
 from . import config
 
@@ -33,6 +35,13 @@ class WazoDebugApp(App):
 
 
 def main(argv=sys.argv[1:]):
+    xivo_logging.silence_loggers(
+        [
+            'urllib3',
+            'stevedore.extension',
+        ],
+        logging.WARNING,
+    )
     myapp = WazoDebugApp()
     return myapp.run(argv)
 

@@ -1,8 +1,9 @@
-# Copyright 2020-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import datetime
 import logging
+import os.path
 import signal
 import time
 from subprocess import PIPE, Popen, call
@@ -130,6 +131,9 @@ class CaptureCommand(Command):
             'xivo-upgrade',
         )
         for wazo_log in wazo_logs:
+            log_file_path = f'/var/log/{wazo_log}.log'
+            if not os.path.exists(log_file_path):
+                continue
             command = f'tail -f /var/log/{wazo_log}.log > {self.collection_directory}/{wazo_log}.log'
             self.log_processes.append(Popen(command, shell=True))
 
