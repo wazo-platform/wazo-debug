@@ -66,11 +66,7 @@ def check_free_space(target_directory):
 
 
 def compute_gathering_size():
-    paths = (
-        _log_source_paths()
-        + _config_source_paths()
-        + glob.glob('/usr/share/wazo/WAZO-VERSION')
-    )
+    paths = _log_source_paths() + _config_source_paths() + _engine_info_source_paths()
     return sum(_path_size(p) for p in paths)
 
 
@@ -94,6 +90,10 @@ def _config_source_paths():
         + glob.glob('/etc/asterisk')
         + glob.glob('/etc/nginx')
     )
+
+
+def _engine_info_source_paths():
+    return glob.glob('/usr/share/wazo/WAZO-VERSION')
 
 
 def _path_size(path):
@@ -144,14 +144,7 @@ def gather_log_files(gathering_directory):
         ['rsync', '-a']
         + ['--include', 'asterisk/full*']
         + ['--exclude', 'asterisk/*']
-        + glob.glob('/var/log/asterisk')
-        + glob.glob('/var/log/nginx')
-        + glob.glob('/var/log/rabbitmq')
-        + glob.glob('/var/log/syslog*')
-        + glob.glob('/var/log/wazo-*')
-        + glob.glob('/var/log/xivo-*')
-        + glob.glob('/var/log/fail2ban*')
-        + glob.glob('/var/www/munin')
+        + _log_source_paths()
         + [gathering_log_directory]
     )
     call(command)
@@ -163,21 +156,14 @@ def gather_config_files(gathering_directory):
     gathering_config_directory = os.path.join(gathering_directory, 'config')
     os.mkdir(gathering_config_directory)
 
-    command = (
-        ['rsync', '-a']
-        + glob.glob('/etc/wazo-*')
-        + glob.glob('/etc/xivo*')
-        + glob.glob('/etc/asterisk')
-        + glob.glob('/etc/nginx')
-        + [gathering_config_directory]
-    )
+    command = ['rsync', '-a'] + _config_source_paths() + [gathering_config_directory]
     call(command)
 
 
 def gather_engine_info(gathering_directory):
     logger.info('Gathering engine information...')
 
-    command = ['rsync', '-a', '/usr/share/wazo/WAZO-VERSION', gathering_directory]
+    command = ['rsync', '-a'] + _engine_info_source_paths() + [gathering_directory]
     call(command)
 
     command = ['timedatectl', 'show']
