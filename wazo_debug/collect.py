@@ -54,46 +54,40 @@ def check_free_space(temp_directory, output_file):
     required_bytes = compute_gathering_size()
     output_directory = _existing_ancestor(output_file)
 
+    temp_directory_free_space = shutil.disk_usage(temp_directory).free
+    output_directory_free_space = shutil.disk_usage(output_directory).free
+
     if _same_filesystem(temp_directory, output_directory):
         # Tarball is built while the uncompressed copy still lives in temp_directory,
         # so both must fit on the shared filesystem at the same time.
         combined_bytes = required_bytes * 2
-        if not _has_enough_free_space(temp_directory, combined_bytes):
+        if not _has_enough_free_space(temp_directory_free_space, combined_bytes):
             raise RuntimeError(
                 f'Not enough free space on filesystem hosting "{temp_directory}" '
                 f'for gathered data + tarball: '
-                f'{_format_bytes(shutil.disk_usage(temp_directory).free)} available, '
+                f'{_format_bytes(temp_directory_free_space)} available, '
                 f'{_format_bytes(combined_bytes + FREE_SPACE_BUFFER_BYTES)} required.'
             )
         return
 
-    if not _has_enough_free_space(temp_directory, required_bytes):
+    if not _has_enough_free_space(temp_directory_free_space, required_bytes):
         raise RuntimeError(
             f'Not enough free space on filesystem hosting "{temp_directory}" '
             f'for gathered data: '
-            f'{_format_bytes(shutil.disk_usage(temp_directory).free)} available, '
+            f'{_format_bytes(temp_directory_free_space)} available, '
             f'{_format_bytes(required_bytes + FREE_SPACE_BUFFER_BYTES)} required.'
         )
-    if not _has_enough_free_space(output_directory, required_bytes):
+    if not _has_enough_free_space(output_directory_free_space, required_bytes):
         raise RuntimeError(
             f'Not enough free space on filesystem hosting "{output_directory}" '
             f'for tarball: '
-            f'{_format_bytes(shutil.disk_usage(output_directory).free)} available, '
+            f'{_format_bytes(output_directory_free_space)} available, '
             f'{_format_bytes(required_bytes + FREE_SPACE_BUFFER_BYTES)} required.'
         )
 
 
-def _has_enough_free_space(directory, data_bytes):
-    free_bytes = shutil.disk_usage(directory).free
+def _has_enough_free_space(free_bytes, data_bytes):
     needed_bytes = data_bytes + FREE_SPACE_BUFFER_BYTES
-    logger.info(
-        'Free space check on "%s": need %s (data %s + buffer %s), have %s',
-        directory,
-        _format_bytes(needed_bytes),
-        _format_bytes(data_bytes),
-        _format_bytes(FREE_SPACE_BUFFER_BYTES),
-        _format_bytes(free_bytes),
-    )
     return free_bytes >= needed_bytes
 
 
