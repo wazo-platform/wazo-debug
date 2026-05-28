@@ -15,6 +15,8 @@ from cliff.command import Command
 logger = logging.getLogger(__name__)
 
 FREE_SPACE_BUFFER_BYTES = 500 * 1024 * 1024  # 500 MB safety buffer
+# Worst-case compressed-to-uncompressed ratio for the output tarball
+TARBALL_COMPRESSION_RATIO = 0.80
 ASTERISK_LOG_DIR = '/var/log/asterisk'
 
 
@@ -36,7 +38,7 @@ class CollectCommand(Command):
         with tempfile.TemporaryDirectory(prefix='wazo-debug-') as temp_directory:
             logger.info('Created temporary directory: "%s"', temp_directory)
 
-            check_free_space(temp_directory)
+            check_free_space(temp_directory, parsed_args.output_file)
 
             gathering_directory = os.path.join(temp_directory, 'wazo-debug')
             os.mkdir(gathering_directory)
@@ -47,22 +49,63 @@ class CollectCommand(Command):
             logger.info('Removing temporary directory: "%s"', temp_directory)
 
 
-def check_free_space(target_directory):
-    required_bytes = compute_gathering_size()
-    free_bytes = shutil.disk_usage(target_directory).free
-    needed_bytes = required_bytes + FREE_SPACE_BUFFER_BYTES
+def check_free_space(temp_directory, output_file):
+    uncompressed_bytes = compute_gathering_size()
+    compressed_bytes = int(uncompressed_bytes * TARBALL_COMPRESSION_RATIO)
+    output_directory = _existing_ancestor(output_file)
+
+    if _same_filesystem(temp_directory, output_directory):
+        # Tarball is built while the uncompressed copy still lives in temp_directory,
+        # so both must fit on the shared filesystem at the same time.
+        combined_bytes = uncompressed_bytes + compressed_bytes
+        if not _has_enough_free_space(temp_directory, combined_bytes):
+            raise RuntimeError(
+                f'Not enough free space on filesystem hosting "{temp_directory}" '
+                f'for uncompressed data + compressed tarball '
+                f'({combined_bytes} bytes + {FREE_SPACE_BUFFER_BYTES} buffer required).'
+            )
+        return
+
+    if not _has_enough_free_space(temp_directory, uncompressed_bytes):
+        raise RuntimeError(
+            f'Not enough free space on filesystem hosting "{temp_directory}" '
+            f'for uncompressed data '
+            f'({uncompressed_bytes} bytes + {FREE_SPACE_BUFFER_BYTES} buffer required).'
+        )
+    if not _has_enough_free_space(output_directory, compressed_bytes):
+        raise RuntimeError(
+            f'Not enough free space on filesystem hosting "{output_directory}" '
+            f'for compressed tarball '
+            f'({compressed_bytes} bytes + {FREE_SPACE_BUFFER_BYTES} buffer required).'
+        )
+
+
+def _has_enough_free_space(directory, data_bytes):
+    free_bytes = shutil.disk_usage(directory).free
+    needed_bytes = data_bytes + FREE_SPACE_BUFFER_BYTES
     logger.info(
-        'Estimated gathered data size: %d bytes; free space on "%s": %d bytes',
-        required_bytes,
-        target_directory,
+        'Free space check on "%s": need %d bytes (data %d + buffer %d), have %d bytes',
+        directory,
+        needed_bytes,
+        data_bytes,
+        FREE_SPACE_BUFFER_BYTES,
         free_bytes,
     )
-    if free_bytes < needed_bytes:
-        raise RuntimeError(
-            f'Not enough free space on filesystem hosting "{target_directory}": '
-            f'{free_bytes} bytes available, but {needed_bytes} bytes are required '
-            f'({required_bytes} bytes of data + {FREE_SPACE_BUFFER_BYTES} bytes buffer).'
-        )
+    return free_bytes >= needed_bytes
+
+
+def _existing_ancestor(path):
+    path = os.path.abspath(path)
+    while not os.path.exists(path):
+        parent = os.path.dirname(path)
+        if parent == path:
+            break
+        path = parent
+    return path
+
+
+def _same_filesystem(path_a, path_b):
+    return os.stat(path_a).st_dev == os.stat(path_b).st_dev
 
 
 def compute_gathering_size():
