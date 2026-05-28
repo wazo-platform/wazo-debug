@@ -16,8 +16,6 @@ from cliff.command import Command
 logger = logging.getLogger(__name__)
 
 FREE_SPACE_BUFFER_BYTES = 500 * 1024 * 1024  # 500 MB safety buffer
-# Worst-case compressed-to-uncompressed ratio for the output tarball
-TARBALL_COMPRESSION_RATIO = 0.80
 ASTERISK_LOG_DIR = '/var/log/asterisk'
 
 
@@ -51,36 +49,37 @@ class CollectCommand(Command):
 
 
 def check_free_space(temp_directory, output_file):
-    uncompressed_bytes = compute_gathering_size()
-    compressed_bytes = int(uncompressed_bytes * TARBALL_COMPRESSION_RATIO)
+    # `tar caf` auto-detects compression from the output suffix, so we assume
+    # the worst case: an uncompressed tarball whose size matches the source.
+    required_bytes = compute_gathering_size()
     output_directory = _existing_ancestor(output_file)
 
     if _same_filesystem(temp_directory, output_directory):
         # Tarball is built while the uncompressed copy still lives in temp_directory,
         # so both must fit on the shared filesystem at the same time.
-        combined_bytes = uncompressed_bytes + compressed_bytes
+        combined_bytes = required_bytes * 2
         if not _has_enough_free_space(temp_directory, combined_bytes):
             raise RuntimeError(
                 f'Not enough free space on filesystem hosting "{temp_directory}" '
-                f'for uncompressed data + compressed tarball: '
+                f'for gathered data + tarball: '
                 f'{_format_bytes(shutil.disk_usage(temp_directory).free)} available, '
                 f'{_format_bytes(combined_bytes + FREE_SPACE_BUFFER_BYTES)} required.'
             )
         return
 
-    if not _has_enough_free_space(temp_directory, uncompressed_bytes):
+    if not _has_enough_free_space(temp_directory, required_bytes):
         raise RuntimeError(
             f'Not enough free space on filesystem hosting "{temp_directory}" '
-            f'for uncompressed data: '
+            f'for gathered data: '
             f'{_format_bytes(shutil.disk_usage(temp_directory).free)} available, '
-            f'{_format_bytes(uncompressed_bytes + FREE_SPACE_BUFFER_BYTES)} required.'
+            f'{_format_bytes(required_bytes + FREE_SPACE_BUFFER_BYTES)} required.'
         )
-    if not _has_enough_free_space(output_directory, compressed_bytes):
+    if not _has_enough_free_space(output_directory, required_bytes):
         raise RuntimeError(
             f'Not enough free space on filesystem hosting "{output_directory}" '
-            f'for compressed tarball: '
+            f'for tarball: '
             f'{_format_bytes(shutil.disk_usage(output_directory).free)} available, '
-            f'{_format_bytes(compressed_bytes + FREE_SPACE_BUFFER_BYTES)} required.'
+            f'{_format_bytes(required_bytes + FREE_SPACE_BUFFER_BYTES)} required.'
         )
 
 
