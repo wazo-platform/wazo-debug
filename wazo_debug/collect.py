@@ -7,6 +7,7 @@ import glob
 import logging
 import os
 import shutil
+import stat
 import tempfile
 from subprocess import call
 
@@ -152,14 +153,12 @@ def _engine_info_source_paths():
 
 
 def _path_size(path):
-    if os.path.islink(path):
+    info = _lstat(path)
+    if info is None or stat.S_ISLNK(info.st_mode):
         return 0
-    if os.path.isfile(path):
-        try:
-            return os.path.getsize(path)
-        except OSError:
-            return 0
-    if not os.path.isdir(path):
+    if stat.S_ISREG(info.st_mode):
+        return _allocated_bytes(info)
+    if not stat.S_ISDIR(info.st_mode):
         return 0
 
     is_asterisk_log_dir = path == ASTERISK_LOG_DIR
@@ -172,14 +171,24 @@ def _path_size(path):
         for name in files:
             if is_asterisk_log_dir and not fnmatch.fnmatch(name, 'full*'):
                 continue
-            full = os.path.join(root, name)
-            if os.path.islink(full):
+            file_info = _lstat(os.path.join(root, name))
+            if file_info is None or stat.S_ISLNK(file_info.st_mode):
                 continue
-            try:
-                total += os.path.getsize(full)
-            except OSError:
-                continue
+            total += _allocated_bytes(file_info)
     return total
+
+
+def _lstat(path):
+    try:
+        return os.lstat(path)
+    except OSError:
+        return None
+
+
+def _allocated_bytes(info: os.stat_result):
+    # Use st_blocks (512-byte units) rather than st_size so sparse files and
+    # block-rounding overhead are reflected in the estimate.
+    return info.st_blocks * 512
 
 
 def gather_facts(gathering_directory):
