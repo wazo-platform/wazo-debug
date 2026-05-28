@@ -61,22 +61,25 @@ def check_free_space(temp_directory, output_file):
         if not _has_enough_free_space(temp_directory, combined_bytes):
             raise RuntimeError(
                 f'Not enough free space on filesystem hosting "{temp_directory}" '
-                f'for uncompressed data + compressed tarball '
-                f'({combined_bytes} bytes + {FREE_SPACE_BUFFER_BYTES} buffer required).'
+                f'for uncompressed data + compressed tarball: '
+                f'{_format_bytes(shutil.disk_usage(temp_directory).free)} available, '
+                f'{_format_bytes(combined_bytes + FREE_SPACE_BUFFER_BYTES)} required.'
             )
         return
 
     if not _has_enough_free_space(temp_directory, uncompressed_bytes):
         raise RuntimeError(
             f'Not enough free space on filesystem hosting "{temp_directory}" '
-            f'for uncompressed data '
-            f'({uncompressed_bytes} bytes + {FREE_SPACE_BUFFER_BYTES} buffer required).'
+            f'for uncompressed data: '
+            f'{_format_bytes(shutil.disk_usage(temp_directory).free)} available, '
+            f'{_format_bytes(uncompressed_bytes + FREE_SPACE_BUFFER_BYTES)} required.'
         )
     if not _has_enough_free_space(output_directory, compressed_bytes):
         raise RuntimeError(
             f'Not enough free space on filesystem hosting "{output_directory}" '
-            f'for compressed tarball '
-            f'({compressed_bytes} bytes + {FREE_SPACE_BUFFER_BYTES} buffer required).'
+            f'for compressed tarball: '
+            f'{_format_bytes(shutil.disk_usage(output_directory).free)} available, '
+            f'{_format_bytes(compressed_bytes + FREE_SPACE_BUFFER_BYTES)} required.'
         )
 
 
@@ -84,14 +87,23 @@ def _has_enough_free_space(directory, data_bytes):
     free_bytes = shutil.disk_usage(directory).free
     needed_bytes = data_bytes + FREE_SPACE_BUFFER_BYTES
     logger.info(
-        'Free space check on "%s": need %d bytes (data %d + buffer %d), have %d bytes',
+        'Free space check on "%s": need %s (data %s + buffer %s), have %s',
         directory,
-        needed_bytes,
-        data_bytes,
-        FREE_SPACE_BUFFER_BYTES,
-        free_bytes,
+        _format_bytes(needed_bytes),
+        _format_bytes(data_bytes),
+        _format_bytes(FREE_SPACE_BUFFER_BYTES),
+        _format_bytes(free_bytes),
     )
     return free_bytes >= needed_bytes
+
+
+def _format_bytes(n: int) -> str:
+    size = float(n)
+    for unit in ('B', 'KiB', 'MiB', 'GiB'):
+        if abs(size) < 1024:
+            return f'{size:.1f} {unit}'
+        size /= 1024
+    return f'{size:.1f} TiB'
 
 
 def _existing_ancestor(path):
