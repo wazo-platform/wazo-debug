@@ -18,6 +18,8 @@ from wazo_chatd_client import Client as ChatdClient
 from wazo_dird_client import Client as DirdClient
 from wazo_webhookd_client import Client as WebhookdClient
 
+from .event_recorder import EventRecorder
+
 logger = logging.getLogger(__name__)
 
 
@@ -33,6 +35,7 @@ class CaptureCommand(Command):
 
     def take_action(self, parsed_args):
         self.log_processes = []
+        self.event_recorder = None
         self._start_capture()
 
         print('Capture started. Hit CTRL-C to stop the capture...')
@@ -48,6 +51,9 @@ class CaptureCommand(Command):
         self._clear_directory()
         call(['mkdir', '-p', self.collection_directory])
 
+        print('Starting capture...')
+        self._record_bus_events()
+
         self._enable_agi_debug_mode()
         try:
             self.token = self._create_token()
@@ -62,7 +68,6 @@ class CaptureCommand(Command):
             self._enable_wazo_dird_debug_logs(self.token)
             self._enable_wazo_chatd_debug_logs(self.token)
 
-        print('Starting capture...')
         self._log_version()
         self._log_start_date()
         self._capture_logs()
@@ -75,6 +80,10 @@ class CaptureCommand(Command):
             process.wait()
             if process.returncode != 0 and process.stderr:
                 print(process.stderr.read().decode('utf-8'))
+
+        if self.event_recorder and self.event_recorder.recording:
+            self.event_recorder.stop()
+            print(f'Recorded {self.event_recorder.event_count} bus events.')
 
         self._log_stop_date()
         print('Capture stopped.')
@@ -241,6 +250,15 @@ class CaptureCommand(Command):
             filter_,
         ]
         self.log_processes.append(Popen(command, stderr=PIPE))
+
+    def _record_bus_events(self):
+        events_file = f'{self.collection_directory}/events.jsonl'
+        self.event_recorder = EventRecorder(
+            self.app.config['bus'],
+            events_file,
+            uuid=self.app.config.get('uuid'),
+        )
+        self.event_recorder.start()
 
     def _capture_sip_rtp_packets(self):
         # -O: Write captured data to pcap file

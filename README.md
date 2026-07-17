@@ -50,6 +50,10 @@ Captured events include:
     log packets for calls that have started before sngrep started capturing
 - STUN packets
 - DNS packets
+- Bus events
+  - every event published on the RabbitMQ bus by this engine, recorded to
+    `events.jsonl` (one JSON object per line, with `timestamp`, `name`,
+    `headers` and `payload`). wazo-debug connects to RabbitMQ directly.
 
 ### Usage
 

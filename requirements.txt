@@ -6,4 +6,5 @@ https://github.com/wazo-platform/wazo-chatd-client/archive/master.zip
 https://github.com/wazo-platform/wazo-dird-client/archive/master.zip
 https://github.com/wazo-platform/wazo-webhookd-client/archive/master.zip
 cliff==4.0.0
+kombu==5.2.4
 requests==2.28.1

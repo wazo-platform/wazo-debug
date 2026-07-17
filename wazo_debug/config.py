@@ -55,6 +55,14 @@ _DEFAULT_CONFIG = {
         'prefix': None,
         'https': False,
     },
+    'bus': {
+        'username': 'guest',
+        'password': 'guest',
+        'host': 'localhost',
+        'port': 5672,
+        'exchange_name': 'wazo-headers',
+        'exchange_type': 'headers',
+    },
 }
 
 
