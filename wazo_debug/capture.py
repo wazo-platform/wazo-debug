@@ -1,4 +1,4 @@
-# Copyright 2020-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import datetime
@@ -18,6 +18,8 @@ from wazo_chatd_client import Client as ChatdClient
 from wazo_dird_client import Client as DirdClient
 from wazo_webhookd_client import Client as WebhookdClient
 
+from .event_recorder import EventRecorder
+
 logger = logging.getLogger(__name__)
 
 
@@ -33,20 +35,28 @@ class CaptureCommand(Command):
 
     def take_action(self, parsed_args):
         self.log_processes = []
-        self._start_capture()
-
-        print('Capture started. Hit CTRL-C to stop the capture...')
-
+        self.event_recorder = None
         try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print()
+            self._start_capture()
+
+            print('Capture started. Hit CTRL-C to stop the capture...')
+
+            try:
+                while True:
+                    time.sleep(1)
+            except KeyboardInterrupt:
+                print()
+        finally:
+            # Always tear down, even if setup raised partway through, so we
+            # never leave the bus recorder running or debug logs enabled.
             self._stop_capture()
 
     def _start_capture(self):
         self._clear_directory()
         call(['mkdir', '-p', self.collection_directory])
+
+        print('Starting capture...')
+        self._record_bus_events()
 
         self._enable_agi_debug_mode()
         try:
@@ -62,7 +72,6 @@ class CaptureCommand(Command):
             self._enable_wazo_dird_debug_logs(self.token)
             self._enable_wazo_chatd_debug_logs(self.token)
 
-        print('Starting capture...')
         self._log_version()
         self._log_start_date()
         self._capture_logs()
@@ -75,6 +84,16 @@ class CaptureCommand(Command):
             process.wait()
             if process.returncode != 0 and process.stderr:
                 print(process.stderr.read().decode('utf-8'))
+
+        if self.event_recorder and self.event_recorder.recording:
+            try:
+                self.event_recorder.stop()
+                print(f'Recorded {self.event_recorder.event_count} bus events.')
+            except Exception:
+                # A failing recorder (e.g. RabbitMQ already down, a common
+                # reason to capture) must not prevent us from disabling debug
+                # logs, building the tarball and clearing the temp directory.
+                logger.exception('Error while stopping the bus event recorder')
 
         self._log_stop_date()
         print('Capture stopped.')
@@ -241,6 +260,18 @@ class CaptureCommand(Command):
             filter_,
         ]
         self.log_processes.append(Popen(command, stderr=PIPE))
+
+    def _record_bus_events(self):
+        events_file = f'{self.collection_directory}/events.jsonl'
+        try:
+            self.event_recorder = EventRecorder.from_config(
+                self.app.config['bus'],
+                events_file,
+            )
+            self.event_recorder.start()
+        except Exception:
+            logger.exception('Could not start bus event recording; continuing capture')
+            self.event_recorder = None
 
     def _capture_sip_rtp_packets(self):
         # -O: Write captured data to pcap file
