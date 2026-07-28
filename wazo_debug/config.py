@@ -14,8 +14,7 @@ _DEFAULT_CONFIG = {
     'extra_config_files': f'/etc/{_APP_NAME}/conf.d/',
     'auth': {
         'host': 'localhost',
-        'port': 9497,
-        'prefix': None,
+        'port': 80,
         'https': False,
         'key_file': '/var/lib/wazo-auth-keys/wazo-debug-key.yml',
     },
